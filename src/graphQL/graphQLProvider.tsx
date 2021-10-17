@@ -17,7 +17,7 @@ export const GraphQLProvider = ({
 }): JSX.Element => {
   const { getToken, isAuthenticated } = useAuth0();
 
-  const httpLink = new HttpLink({ uri: 'http://localhost:9000/graphql' });
+  const httpLink = new HttpLink({ uri: API_URL });
 
   /* istanbul ignore next */
   const authLink = setContext(async () => {
@@ -38,7 +38,6 @@ export const GraphQLProvider = ({
   });
 
   const apolloClient = new ApolloClient({
-    uri: API_URL,
     link: authLink.concat(httpLink),
     cache: new InMemoryCache(),
   });

@@ -4,7 +4,7 @@ import { MainRouter } from './mainRouter';
 import { GlobalStyle } from './styles/globalStyles';
 import { AppDebug } from './AppDebug';
 
-export default function App() {
+const App = () => {
   return (
     <Router>
       <GlobalStyle />
@@ -12,4 +12,6 @@ export default function App() {
       {process.env.REACT_APP_MODE === 'local' ? <AppDebug /> : null}
     </Router>
   );
-}
+};
+
+export default App;
