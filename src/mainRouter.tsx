@@ -72,6 +72,12 @@ const TiryRoute = ({
 export const MainRouter = () => {
   const { isLoading, isAuthenticated } = useAuth0();
 
+  const {
+    loading: loadingVerifyUser,
+    // error: errorVerifyUser,
+    data: verifyUserData,
+  } = useQuery(VERIFY_USER, { fetchPolicy: 'network-only' });
+
   // useEffect(() => {
   //   const now = +new Date();
   //   (async () => {
@@ -102,8 +108,12 @@ export const MainRouter = () => {
   //   })();
   // });
 
-  if (isLoading) {
+  if (isLoading && loadingVerifyUser) {
     return <LoadingPage />;
+  }
+
+  if (isAuthenticated && verifyUserData?.verifyUser) {
+    return <MainPage />;
   }
 
   return (

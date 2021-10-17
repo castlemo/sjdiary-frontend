@@ -15,21 +15,12 @@ const StyledSigninTemplate = styled.div`
 `;
 
 export const SigninTemplate = () => {
-  const history = useHistory();
-
-  const {
-    isLoading,
-    getUserProfile,
-    getToken,
-    isAuthenticated,
-    signIn,
-    signOut,
-    user,
-  } = useAuth0();
+  const { signIn } = useAuth0();
 
   return (
     <StyledSigninTemplate>
       <img src={TiryLogo} alt="TiryLogo" width="480" height="333" />
+      <span>version 0.0.1</span>
       <button
         style={{
           width: 299,
