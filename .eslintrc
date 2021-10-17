@@ -1,0 +1,54 @@
+{
+    "env": {
+        "node": true,
+        "jest": true,
+        "browser": true,
+        "es6": true
+      },
+    "parser": "@typescript-eslint/parser", // typescript를 linting 할 수 있게 만들어줌
+    "extends": [
+        // airbnb 플러그인 적용
+        "airbnb",
+        "airbnb-typescript",
+        // -----------------
+        // eslint-config-prettier의 메인 설정을 활성화하며, prettier와 충돌하는 ESLint 코어 룰을 비활성화한다.
+        "prettier",
+        // -----------------
+        "plugin:react/recommended",
+        "plugin:@typescript-eslint/recommended",
+        // eslint-config-prettier, eslint-plugin-prettier 설정을 적용하기 위한 셋팅. 반드시 마지막 익스텐션 순서로 넣어주어야 한다.
+        "plugin:prettier/recommended"
+        // -----------------
+    ],
+    "plugins": [
+        "prettier",
+        "react",
+        "@typescript-eslint",
+        "react-hooks"
+    ],
+    "parserOptions": {
+        "project": "./tsconfig.json",
+        "ecmaVersion": 2021,
+        "sourceType": "module", // import 사용
+        "ecmaFeatures": {
+            "jsx": true // jsx 활성화
+        }
+    },
+    "rules": {
+        // 규칙들
+        "react/react-in-jsx-scope": "off", // 파일마다 React를 임포트하라고 뜨는 에러 방지를 위해 추가한 룰이다.
+        "react/jsx-filename-extension": [
+            1,
+            { "extensions": [".js", ".jsx", ".ts", ".tsx"] }
+        ],
+        "import/prefer-default-export": "off",
+        "no-shadow": "off",
+        "@typescript-eslint/no-shadow": ["error"],
+        "react/require-default-props": "off",
+        "react/jsx-props-no-spreading": "off"
+    },
+    "ignorePatterns": [
+        "dist/",
+        "node_modules/"
+    ]
+}

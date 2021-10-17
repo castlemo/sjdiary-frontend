@@ -1,14 +1,27 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
+import { createBrowserHistory } from 'history';
+import { ThemeProvider } from 'styled-components';
+
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { Auth0Wrapper } from './auth0';
+import { GraphQLProvider } from './graphQL/graphQLProvider';
+import { theme } from './styles/theme';
+
+export const history = createBrowserHistory();
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <Auth0Wrapper history={history}>
+      <GraphQLProvider>
+        <ThemeProvider theme={theme}>
+          <App />
+        </ThemeProvider>
+      </GraphQLProvider>
+    </Auth0Wrapper>
   </React.StrictMode>,
-  document.getElementById('root')
+  document.getElementById('root'),
 );
 
 // If you want to start measuring performance in your app, pass a function
