@@ -16,6 +16,7 @@ import {
   LoadingPage,
   NotFoundPage,
 } from './components/pages';
+import { API_URL } from './constant';
 import { VERIFY_USER } from './graphQL/queries';
 import { Test } from './test';
 
@@ -40,6 +41,8 @@ const TiryRoute = ({
   console.log(
     `history.location.pathname: ${history.location.pathname}, isUser: ${isUser}`,
   );
+
+  console.log(`API_URL: ${API_URL}`);
 
   const render = (routeProps: RouteComponentProps) => {
     if (!isAuthenticated) {
