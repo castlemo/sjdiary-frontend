@@ -9,7 +9,7 @@ export default function App() {
     <Router>
       <GlobalStyle />
       <MainRouter />
-      {/* <AppDebug /> */}
+      {process.env.REACT_APP_MODE === 'local' ? <AppDebug /> : null}
     </Router>
   );
 }
