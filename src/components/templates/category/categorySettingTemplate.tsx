@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react';
 import styled from 'styled-components';
 
-import { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } from 'constants';
 import { useMutation } from '@apollo/client';
 import { Category, CreateCategory } from '../../../types';
 import { CategoryCard } from '../../molecules';
