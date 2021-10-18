@@ -15,7 +15,7 @@ import { CREATE_TODO } from '../../../graphQL/mutations';
 import { CategorySettingTemplate } from '../category';
 import { ColorCircle } from '../../atoms';
 import { SideTodo } from '../../organisms';
-import { getTodayZeroTimeTimestamp } from '../../../utils';
+import { consoleLog, getTodayZeroTimeTimestamp } from '../../../utils';
 
 const StyledMainTemplate = styled.div`
   display: flex;
@@ -169,7 +169,7 @@ export const MainTemplate = () => {
   });
   // 스크롤 저장
 
-  console.log({ selectedCategoryType, selectedCategoryId });
+  consoleLog({ selectedCategoryType, selectedCategoryId });
 
   const {
     loading: loadingMe,
@@ -181,9 +181,9 @@ export const MainTemplate = () => {
   });
 
   if (meData) {
-    console.log('--------me--------');
-    console.log(JSON.stringify(meData.me, null, 2));
-    console.log('--------me--------');
+    consoleLog('--------me--------');
+    consoleLog(JSON.stringify(meData.me, null, 2));
+    consoleLog('--------me--------');
   }
 
   const {
@@ -200,9 +200,9 @@ export const MainTemplate = () => {
   });
 
   if (getTodosData) {
-    console.log('--------getTodos--------');
-    console.log(getTodosData.getTodos);
-    console.log('--------getTodos--------');
+    consoleLog('--------getTodos--------');
+    consoleLog(getTodosData.getTodos);
+    consoleLog('--------getTodos--------');
   }
 
   const {
@@ -216,9 +216,9 @@ export const MainTemplate = () => {
   });
 
   if (getCategoriesData) {
-    console.log('--------getCategories--------');
-    console.log(getCategoriesData.getCategories);
-    console.log('--------getCategories--------');
+    consoleLog('--------getCategories--------');
+    consoleLog(getCategoriesData.getCategories);
+    consoleLog('--------getCategories--------');
   }
 
   // true: 모든 할 일 / false: 오늘의 할 일
@@ -230,7 +230,8 @@ export const MainTemplate = () => {
   });
 
   // 카테고리 관리페이지 전환 boolean
-  const [isCategorySetting, setIsCategorySetting] = useState<boolean>(false);
+  const [isCategorySettingOpen, setIsCategorySettingOpen] =
+    useState<boolean>(true);
 
   const [
     createTodoMutation,
@@ -248,15 +249,15 @@ export const MainTemplate = () => {
   });
 
   if (createTodoData) {
-    console.log('--------createTodoData--------');
-    console.log(createTodoData);
-    console.log('--------createTodoData--------');
+    consoleLog('--------createTodoData--------');
+    consoleLog(createTodoData);
+    consoleLog('--------createTodoData--------');
   }
 
   const onCheckButtonClickHandler = (
     e?: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ) => {
-    console.log({ ...createTodo });
+    consoleLog({ ...createTodo });
     if (createTodo.contents.length > 0) {
       createTodoMutation({ variables: { input: createTodo } });
     } else {
@@ -280,7 +281,7 @@ export const MainTemplate = () => {
   }
 
   if (errorMe || errorGetTodos || errorGetCategories) {
-    console.log({ errorMe, errorGetTodos });
+    consoleLog({ errorMe, errorGetTodos });
     window.alert('Http Error');
   }
 
@@ -329,7 +330,7 @@ export const MainTemplate = () => {
               }}
               type="button"
               onClick={() => {
-                console.log('calendar');
+                consoleLog('calendar');
               }}
             >
               <img
@@ -349,7 +350,7 @@ export const MainTemplate = () => {
             }}
             type="button"
             onClick={() => {
-              console.log('profile setting');
+              consoleLog('profile setting');
             }}
           >
             <img
@@ -374,107 +375,118 @@ export const MainTemplate = () => {
             }}
             wrapperStyles={{ marginTop: 26 }}
           />
-          {isCategorySetting ? (
+          {isCategorySettingOpen ? (
             <>
               <CategorySettingTemplate
                 onClickCloseBtn={() => {
-                  setIsCategorySetting(false);
+                  setIsCategorySettingOpen(false);
                 }}
                 categories={getCategoriesData?.getCategories}
                 getCategoriesRefetch={getCategoriesRefetch}
               />
             </>
           ) : (
-            <StyledCategorySelectorWrapper
-              ref={categoryScrollRef}
-              onScroll={onScrollHandler}
-            >
-              <button
-                key="settingImg"
-                style={{
-                  width: 30,
-                  height: 30,
-                  marginLeft: 20,
-                  border: 0,
-                  cursor: 'pointer',
-                  outline: 0,
-                  backgroundColor: '#00000000',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-                type="button"
-                onClick={() => {
-                  setIsCategorySetting(true);
-                }}
+            <>
+              <StyledCategorySelectorWrapper
+                ref={categoryScrollRef}
+                onScroll={onScrollHandler}
               >
-                <img
-                  style={{ width: 30, height: 30 }}
-                  src={SettingButtonImg}
-                  alt="카테고리셋팅버튼"
-                />
-              </button>
-              <button
-                key="all"
-                style={{
-                  width: 30,
-                  height: 30,
-                  marginLeft: 30,
-                  border: 0,
-                  cursor: 'pointer',
-                  outline: 0,
-                  backgroundColor: '#00000000',
-                  fontWeight: 500,
-                  fontSize: 20,
-                  color: '#8E8E8E',
-                }}
-                type="button"
-                onClick={() => {
-                  SetSelectedCategoryType('ALL');
-                  SetSelectedCategoryId(undefined);
-                }}
-              >
-                all
-              </button>
-              {getCategoriesData?.getCategories.map((category) => {
-                return (
-                  <button
-                    key={category.id}
-                    style={{
-                      width: 30,
-                      height: 30,
-                      marginLeft: 30,
-                      border: 0,
-                      cursor: 'pointer',
-                      outline: 0,
-                      backgroundColor: '#00000000',
-                      fontWeight: 500,
-                      fontSize: 20,
-                      color: '#8E8E8E',
-                    }}
-                    type="button"
-                    onClick={() => {
-                      SetSelectedCategoryType('CATEGORY');
-                      SetSelectedCategoryId(Number(category.id));
-                    }}
-                  >
-                    <ColorCircle
-                      width={20}
-                      height={20}
-                      borderRadius={100}
-                      backgroundColor={category.color}
-                    />
-                  </button>
-                );
-              })}
-            </StyledCategorySelectorWrapper>
-          )}
-          <StyledTodoListWrapper>
-            {getTodosData?.getTodos.map((todo) => {
-              if (!isAllTodo) {
-                const todayTimestamp = getTodayZeroTimeTimestamp();
-                const todoKorTimestamp = +new Date(todo.createdAt);
-                if (todoKorTimestamp >= todayTimestamp) {
+                <button
+                  key="settingImg"
+                  style={{
+                    width: 30,
+                    height: 30,
+                    marginLeft: 20,
+                    border: 0,
+                    cursor: 'pointer',
+                    outline: 0,
+                    backgroundColor: '#00000000',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                  type="button"
+                  onClick={() => {
+                    setIsCategorySettingOpen(true);
+                  }}
+                >
+                  <img
+                    style={{ width: 30, height: 30 }}
+                    src={SettingButtonImg}
+                    alt="카테고리셋팅버튼"
+                  />
+                </button>
+                <button
+                  key="all"
+                  style={{
+                    width: 30,
+                    height: 30,
+                    marginLeft: 30,
+                    border: 0,
+                    cursor: 'pointer',
+                    outline: 0,
+                    backgroundColor: '#00000000',
+                    fontWeight: 500,
+                    fontSize: 20,
+                    color: '#8E8E8E',
+                  }}
+                  type="button"
+                  onClick={() => {
+                    SetSelectedCategoryType('ALL');
+                    SetSelectedCategoryId(undefined);
+                  }}
+                >
+                  all
+                </button>
+                {getCategoriesData?.getCategories.map((category) => {
+                  return (
+                    <button
+                      key={category.id}
+                      style={{
+                        width: 30,
+                        height: 30,
+                        marginLeft: 30,
+                        border: 0,
+                        cursor: 'pointer',
+                        outline: 0,
+                        backgroundColor: '#00000000',
+                        fontWeight: 500,
+                        fontSize: 20,
+                        color: '#8E8E8E',
+                      }}
+                      type="button"
+                      onClick={() => {
+                        SetSelectedCategoryType('CATEGORY');
+                        SetSelectedCategoryId(Number(category.id));
+                      }}
+                    >
+                      <ColorCircle
+                        width={20}
+                        height={20}
+                        borderRadius={100}
+                        backgroundColor={category.color}
+                      />
+                    </button>
+                  );
+                })}
+              </StyledCategorySelectorWrapper>
+              <StyledTodoListWrapper>
+                {getTodosData?.getTodos.map((todo) => {
+                  if (!isAllTodo) {
+                    const todayTimestamp = getTodayZeroTimeTimestamp();
+                    const todoKorTimestamp = +new Date(todo.createdAt);
+                    if (todoKorTimestamp >= todayTimestamp) {
+                      if (selectedCategoryType === 'CATEGORY') {
+                        return todo.Category?.id === selectedCategoryId ? (
+                          <SideTodo
+                            key={todo.id}
+                            contents={todo.contents}
+                            period={todo.TodoPeriod}
+                          />
+                        ) : null;
+                      }
+                    }
+                  }
                   if (selectedCategoryType === 'CATEGORY') {
                     return todo.Category?.id === selectedCategoryId ? (
                       <SideTodo
@@ -484,26 +496,17 @@ export const MainTemplate = () => {
                       />
                     ) : null;
                   }
-                }
-              }
-              if (selectedCategoryType === 'CATEGORY') {
-                return todo.Category?.id === selectedCategoryId ? (
-                  <SideTodo
-                    key={todo.id}
-                    contents={todo.contents}
-                    period={todo.TodoPeriod}
-                  />
-                ) : null;
-              }
-              return (
-                <SideTodo
-                  key={todo.id}
-                  contents={todo.contents}
-                  period={todo.TodoPeriod}
-                />
-              );
-            })}
-          </StyledTodoListWrapper>
+                  return (
+                    <SideTodo
+                      key={todo.id}
+                      contents={todo.contents}
+                      period={todo.TodoPeriod}
+                    />
+                  );
+                })}
+              </StyledTodoListWrapper>
+            </>
+          )}
         </StyledSideWrapper>
         <StyledCalendarWrapper />
       </StyledBody>

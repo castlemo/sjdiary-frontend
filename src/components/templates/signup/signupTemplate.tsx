@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
-import { useMutation } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client';
 import { useAuth0 } from '../../../auth0';
 
 import SignupDefaultImg from '../../../assets/img/SignupImg.png';
 import { REGISTER_USER } from '../../../graphQL/mutations';
 import { Select } from '../../molecules';
 import { LoadingPage } from '../../pages';
+import { consoleLog } from '../../../utils';
+import { VERIFY_USER } from '../../../graphQL/queries';
 
 const StyledSignupTemplate = styled.div`
   height: 100vh;
@@ -41,8 +43,6 @@ const StyledProfileInputWrapper = styled.div`
   margin-left: 60px;
 `;
 
-const NUM = 15.5;
-
 export enum StartOfWeek {
   MONDAY = 'MONDAY',
   SUNDAY = 'SUNDAY',
@@ -50,9 +50,17 @@ export enum StartOfWeek {
 
 export const SignupTemplate = () => {
   const history = useHistory();
-  const { user } = useAuth0();
+  const { user, isAuthenticated } = useAuth0();
 
-  console.log('test');
+  const {
+    loading: loadingVerifyUser,
+    error,
+    data: verifyUserData,
+  } = useQuery<{ verifyUser: boolean }>(VERIFY_USER, {
+    fetchPolicy: 'network-only',
+  });
+
+  const isUser = !!verifyUserData?.verifyUser;
 
   const [isRequestLoading, setIsRequestLoading] = useState(false);
 
@@ -142,6 +150,14 @@ export const SignupTemplate = () => {
     }
   };
 
+  if (loadingVerifyUser) {
+    <LoadingPage isTransparency />;
+  }
+
+  if (!isAuthenticated || isUser) {
+    history.push('/');
+  }
+
   return (
     <StyledSignupTemplate>
       {isRequestLoading ? <LoadingPage isTransparency /> : null}
@@ -183,7 +199,7 @@ export const SignupTemplate = () => {
               type="button"
               onClick={(e) => {
                 e.preventDefault();
-                console.log('프로필 사진 변경하기');
+                consoleLog('프로필 사진 변경하기');
               }}
             >
               프로필 사진 변경하기

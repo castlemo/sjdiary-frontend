@@ -9,3 +9,9 @@ export const getTodayZeroTimeTimestamp = (): number => {
     0,
   );
 };
+
+export const consoleLog = (v: any) => {
+  if (process.env.REACT_APP_MODE === 'local') {
+    console.log(v);
+  }
+};

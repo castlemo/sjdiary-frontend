@@ -1,24 +1,31 @@
-import styled from 'styled-components';
 import { ColorCircle } from '../../atoms/colorCircle/colorCircle';
 
 interface PropTypes {
   circleColor: string;
   title: string;
+  onClickDelete: () => void;
 }
 
-export const CategoryCard = ({ circleColor, title }: PropTypes) => {
+export const CategoryCard = ({
+  circleColor,
+  title,
+  onClickDelete = () => {},
+}: PropTypes) => {
   return (
     <div
       style={{
         display: 'flex',
-        flexDirection: 'column',
+        flexDirection: 'row',
         width: '100%',
         borderTop: '0.5px solid',
         borderTopColor: '#BFBFBF',
+        justifyContent: 'space-between',
+        alignItems: 'center',
       }}
     >
       <div
         style={{
+          width: '100%',
           display: 'flex',
           flexDirection: 'row',
           alignItems: 'center',
@@ -32,6 +39,31 @@ export const CategoryCard = ({ circleColor, title }: PropTypes) => {
         />
         <p style={{ marginLeft: 14, fontSize: 20 }}>{title}</p>
       </div>
+      <button
+        type="button"
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          marginRight: 17,
+          border: 0,
+          backgroundColor: '#FFFFFF',
+          cursor: 'pointer',
+        }}
+        onClick={onClickDelete}
+      >
+        <span
+          style={{
+            width: 37,
+            fontSize: 20,
+            color: '#CACACA',
+            fontWeight: 'normal',
+            fontStyle: 'normal',
+          }}
+        >
+          삭제
+        </span>
+      </button>
     </div>
   );
 };

@@ -6,8 +6,9 @@ import { Category, CreateCategory } from '../../../types';
 import { CategoryCard } from '../../molecules';
 import { useTiryTheme } from '../../../styles/theme';
 import CheckButtonImg from '../../../assets/img/checkButton.png';
-import { CREATE_CATEGORY } from '../../../graphQL/mutations';
+import { CREATE_CATEGORY, DELETE_CATEGORY } from '../../../graphQL/mutations';
 import { LoadingPage } from '../../pages';
+import { consoleLog } from '../../../utils';
 
 const StyledCategorySettingTemplate = styled.div`
   display: flex;
@@ -116,7 +117,7 @@ export const CategorySettingTemplate = ({
     name: '',
   });
 
-  const [createCategoryMutation, { loading: createCategoryLoading }] =
+  const [createCategoryMutation, { loading: loadingCreateCategory }] =
     useMutation(CREATE_CATEGORY, {
       onCompleted: () => {
         setCreateCategory({
@@ -130,8 +131,18 @@ export const CategorySettingTemplate = ({
       },
     });
 
+  const [deleteCategoryMutation, { loading: loadingDeleteCategory }] =
+    useMutation(DELETE_CATEGORY, {
+      onCompleted: () => {
+        getCategoriesRefetch();
+      },
+      onError: () => {
+        window.alert('카테고리 삭제에 실패했어요, 잠시 후에 시도해주세요!');
+      },
+    });
+
   const onClickCreateCategory = () => {
-    console.log({ ...createCategory });
+    consoleLog({ ...createCategory });
     if (
       createCategory.name.length > 0 &&
       createCategory.color !== theme.colors.white
@@ -148,7 +159,7 @@ export const CategorySettingTemplate = ({
     }
   };
 
-  if (createCategoryLoading) {
+  if (loadingCreateCategory && loadingDeleteCategory) {
     return <LoadingPage />;
   }
 
@@ -197,7 +208,7 @@ export const CategorySettingTemplate = ({
               type="button"
               aria-label="StyledColorSelectorButton"
               backgroundColor={createCategory.color}
-              onClick={() => {
+              onClick={(e) => {
                 setIsSelectorListOpen(!isSelectorListOpen);
               }}
             />
@@ -265,6 +276,11 @@ export const CategorySettingTemplate = ({
             key={category.id}
             title={category.name}
             circleColor={category.color}
+            onClickDelete={() =>
+              deleteCategoryMutation({
+                variables: { categoryId: Number(category.id) },
+              })
+            }
           />
         ))}
       </StyledCategoryList>

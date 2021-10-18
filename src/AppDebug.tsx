@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import { useAuth0 } from './auth0';
+import { consoleLog } from './utils';
 
 export const AppDebug = () => {
   const { user, isLoading, isAuthenticated, getToken, signIn, signOut } =
@@ -61,7 +62,9 @@ export const AppDebug = () => {
                 const token = await getToken();
                 setAccessToken(token);
               }
-              console.log(accessToken);
+              consoleLog(`-------accessToken-------`);
+              consoleLog(accessToken);
+              consoleLog(`-------accessToken-------`);
             }}
           >
             consoleToken

@@ -1,4 +1,6 @@
+/* eslint-disable no-nested-ternary */
 import { useQuery } from '@apollo/client';
+import { ifError } from 'assert';
 import {
   useHistory,
   Switch,
@@ -19,6 +21,7 @@ import {
 import { API_URL } from './constant';
 import { VERIFY_USER } from './graphQL/queries';
 import { Test } from './test';
+import { consoleLog } from './utils';
 
 const TiryRoute = ({
   children,
@@ -31,39 +34,27 @@ const TiryRoute = ({
 
   const {
     loading: loadingVerifyUser,
-    // error: errorVerifyUser,
+    error,
     data: verifyUserData,
-  } = useQuery(VERIFY_USER, { fetchPolicy: 'network-only' });
+  } = useQuery<{ verifyUser: boolean }>(VERIFY_USER, {
+    fetchPolicy: 'network-only',
+  });
 
-  const isUser = verifyUserData?.verifyUser;
-  const { pathname } = history.location;
+  const isUser = !!verifyUserData?.verifyUser;
 
-  console.log(
-    `history.location.pathname: ${history.location.pathname}, isUser: ${isUser}`,
-  );
-
-  console.log(`API_URL: ${API_URL}`);
+  consoleLog({ isAuthenticated, isUser, path: history.location.pathname });
 
   const render = (routeProps: RouteComponentProps) => {
     if (!isAuthenticated) {
-      console.log('isAuthenticated');
-      return <SigninPage />;
+      return <Redirect to="/signin" />;
     }
 
     if (loadingVerifyUser) {
-      console.log('loadingVerifyUser');
       return <LoadingPage />;
     }
 
-    // 로그인 후 Tiry유저가 아니면 signup
     if (!isUser) {
-      console.log('isUser');
       return <Redirect to="/signup" />;
-    }
-
-    // 로그인 후 Tiry유저 이면 signin과 signup페이지 못들어가게
-    if (['/signup', '/signin'].includes(pathname)) {
-      return <Redirect to="/" />;
     }
 
     return props.render ? props.render(routeProps) : children;
@@ -73,56 +64,16 @@ const TiryRoute = ({
 };
 
 export const MainRouter = () => {
-  const { isLoading, isAuthenticated } = useAuth0();
+  const { isLoading } = useAuth0();
 
-  const {
-    loading: loadingVerifyUser,
-    // error: errorVerifyUser,
-    data: verifyUserData,
-  } = useQuery(VERIFY_USER, { fetchPolicy: 'network-only' });
-
-  // useEffect(() => {
-  //   const now = +new Date();
-  //   (async () => {
-  //     try {
-  //       console.log(`*******************MainRouter:${now}****************`);
-  //       console.log(`isAuthenticated: ${isAuthenticated}`);
-  //       console.log(`isLoading: ${isLoading}`);
-
-  //       console.log('====================user================');
-  //       console.log(user);
-  //       console.log('====================user================');
-
-  //       const userProfile = await getUserProfile();
-  //       console.log(`====================userProfile================`);
-  //       console.log(userProfile);
-  //       console.log(`====================userProfile================`);
-
-  //       const token = await getToken();
-  //       console.log(`====================token:${now}================`);
-  //       console.log(token);
-  //       console.log(`====================token:${now}================`);
-  //       console.log(`*******************MainRouter:${now}****************`);
-  //     } catch (e) {
-  //       console.log(`*******************MainRouter:${now}****************`);
-  //       console.error(e);
-  //       console.log(`*******************MainRouter:${now}****************`);
-  //     }
-  //   })();
-  // });
-
-  if (isLoading && loadingVerifyUser) {
+  if (isLoading) {
     return <LoadingPage />;
-  }
-
-  if (isAuthenticated && verifyUserData?.verifyUser) {
-    return <MainPage />;
   }
 
   return (
     <Switch>
       <Route path="/signin">
-        {isAuthenticated ? <Redirect to="/" /> : <SigninPage />}
+        <SigninPage />
       </Route>
 
       <Route path="/signup">

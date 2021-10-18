@@ -9,6 +9,7 @@ import {
   useMemo,
   useState,
 } from 'react';
+import { consoleLog } from '../utils';
 
 export const useShouldCheckAuthLocalStorage = () => {
   const LOCAL_STORAGE_KEY = 'shouldCheckAuth';
@@ -116,7 +117,7 @@ export const Auth0Wrapper = ({
       });
       return true;
     }
-    console.log('auth0Client is not set');
+    consoleLog('auth0Client is not set');
     return false;
   };
 
@@ -160,10 +161,10 @@ export const Auth0Wrapper = ({
    * Token that are to be expired in 10 min will be refetched by setTimeout in useEffet hook below
    */
   const getToken = useCallback(async (): Promise<string | undefined> => {
-    // console.log('====================getToken================');
-    // console.log({ auth0Client });
-    // console.log({ isAuthenticated });
-    // console.log('====================getToken================');
+    // consoleLog('====================getToken================');
+    // consoleLog({ auth0Client });
+    // consoleLog{ isAuthenticated });
+    // consoleLog('====================getToken================');
     if (!isAuthenticated) {
       return undefined;
     }
@@ -175,11 +176,11 @@ export const Auth0Wrapper = ({
 
       if (tokenExists && !tokenExpired) {
         // * if token exists and not expired yet, return token
-        console.log('getToken: returning existing token');
+        consoleLog('getToken: returning existing token');
         return auth0UserData.accessToken;
       }
       // * if token already expired, call fetchToken and return the result
-      console.log('getToken: fetching new token');
+      consoleLog('getToken: fetching new token');
 
       const { result } = await fetchToken();
       setAuth0UserData({
@@ -189,7 +190,7 @@ export const Auth0Wrapper = ({
       return result?.accessToken;
     }
 
-    console.log('auth0Client is not set');
+    consoleLog('auth0Client is not set');
     return undefined;
   }, [auth0UserData, auth0Client, fetchToken]);
 
@@ -208,7 +209,7 @@ export const Auth0Wrapper = ({
         });
       }
 
-      console.log('fetchUserProfile: auth0Client is not set, too bad :(');
+      consoleLog('fetchUserProfile: auth0Client is not set, too bad :(');
       return { profile: undefined, error: { error: 'auth0Client' } };
     },
     [auth0Client],
@@ -226,7 +227,7 @@ export const Auth0Wrapper = ({
       return profile;
     }
 
-    console.log('auth0UserData is not set');
+    consoleLog('auth0UserData is not set');
     return undefined;
   }, [auth0UserData, fetchUserProfile]);
 
@@ -256,9 +257,9 @@ export const Auth0Wrapper = ({
         if (err) {
           console.error(err);
         }
-        console.log('============accessToken============');
-        console.log(result?.accessToken);
-        console.log('============accessToken============');
+        consoleLog('============accessToken============');
+        consoleLog(result?.accessToken);
+        consoleLog('============accessToken============');
         if (result !== undefined) {
           setAuth0UserData({
             accessToken: result?.accessToken,

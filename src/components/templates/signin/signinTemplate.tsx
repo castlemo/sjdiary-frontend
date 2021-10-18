@@ -2,8 +2,11 @@ import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { useHistory } from 'react-router-dom';
 
+import { useQuery } from '@apollo/client';
 import { useAuth0 } from '../../../auth0';
 import TiryLogo from '../../../assets/img/TiryLogo.png';
+import { VERIFY_USER } from '../../../graphQL/queries';
+import { LoadingPage } from '../../pages';
 
 const StyledSigninTemplate = styled.div`
   height: 100vh;
@@ -15,7 +18,27 @@ const StyledSigninTemplate = styled.div`
 `;
 
 export const SigninTemplate = () => {
-  const { signIn } = useAuth0();
+  const { signIn, isAuthenticated } = useAuth0();
+  const history = useHistory();
+
+  if (isAuthenticated) {
+    const {
+      loading: loadingVerifyUser,
+      // error: errorVerifyUser,
+      data: verifyUserData,
+    } = useQuery(VERIFY_USER, { fetchPolicy: 'network-only' });
+
+    if (loadingVerifyUser) {
+      return <LoadingPage isTransparency />;
+    }
+
+    const isUser = verifyUserData?.verifyUser;
+    if (isUser === true) {
+      history.push('/');
+    } else if (isUser === false) {
+      history.push('/signup');
+    }
+  }
 
   return (
     <StyledSigninTemplate>
