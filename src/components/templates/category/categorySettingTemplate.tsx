@@ -159,7 +159,7 @@ export const CategorySettingTemplate = ({
     }
   };
 
-  if (loadingCreateCategory && loadingDeleteCategory) {
+  if (loadingCreateCategory || loadingDeleteCategory) {
     return <LoadingPage />;
   }
 

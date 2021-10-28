@@ -7,6 +7,8 @@ export interface User {
   profileImageUrl: string;
 }
 
+export type GetTodosType = 'ALL' | 'CATEGORY' | 'TODAY';
+
 export interface Todo {
   id: number;
   contents: string;
@@ -26,14 +28,29 @@ export interface TodoPeriod {
   endedAt: Date;
 }
 
-export type CreateTodo = Pick<Todo, 'contents'>;
+export type CreateTodo = Pick<Todo, 'contents' | 'Category'>;
+export type UpdateTodo = Partial<Todo> & Pick<Todo, 'id'>;
+
+export interface CreateTodoMutationInput {
+  contents: string;
+  categoryId?: number;
+  isTime?: boolean;
+  startedAt?: Date;
+  endedAt?: Date;
+}
 
 export interface Category {
   id: number;
   name: string;
   color: string;
-  createdAt: number;
-  updatedAt: number;
+  createdAt?: number;
+  updatedAt?: number;
 }
 
 export type CreateCategory = Pick<Category, 'name' | 'color'>;
+
+export interface TodoModalInfo {
+  left: number;
+  top: number;
+  type: 'CREATE' | 'UPDATE';
+}

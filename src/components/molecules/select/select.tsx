@@ -1,5 +1,6 @@
+/* eslint-disable jsx-a11y/no-static-element-interactions */
+/* eslint-disable jsx-a11y/click-events-have-key-events */
 import React from 'react';
-import styled from 'styled-components';
 
 import { SelectButton } from '../../atoms';
 
@@ -7,9 +8,10 @@ interface SelectProps {
   isLeft: boolean;
   leftWord: string;
   rightWord: string;
+  wrapperStyles?: React.CSSProperties;
   onLeftClick: () => void;
   onRightClick: () => void;
-  wrapperStyles?: React.CSSProperties;
+  onCloseModal?: (options?: { isAll: boolean }) => void;
 }
 
 export const Select = ({
@@ -19,6 +21,7 @@ export const Select = ({
   onLeftClick,
   onRightClick,
   wrapperStyles = {},
+  onCloseModal = () => {},
 }: SelectProps) => {
   return (
     <div
@@ -30,6 +33,9 @@ export const Select = ({
         backgroundColor: '#F7F5FF',
         borderRadius: 100,
         ...wrapperStyles,
+      }}
+      onMouseDown={() => {
+        onCloseModal({ isAll: true });
       }}
     >
       <SelectButton id="left" isCheck={isLeft} onClick={onLeftClick}>

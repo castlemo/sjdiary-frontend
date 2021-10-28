@@ -1,6 +1,10 @@
 import styled from 'styled-components';
+import ReactDom from 'react-dom';
+import { useEffect, useState, createRef, useCallback } from 'react';
+import { StringLiteralLike } from 'typescript';
 import TodoMenuButtonImg from '../../../assets/img/todoMenuButtonImg.png';
-import { TodoPeriod } from '../../../types';
+import { Todo, TodoPeriod, UpdateTodo } from '../../../types';
+import { consoleLog } from '../../../utils';
 
 const StyledSideTodoWrapper = styled.div`
   min-height: 80px;
@@ -10,7 +14,9 @@ const StyledSideTodoWrapper = styled.div`
   margin-left: 20px;
 `;
 
-const StyledCheckButton = styled.button`
+const StyledEmptyInsideColorCircleButton = styled.button<{
+  backgroundColor?: string;
+}>`
   width: 24px;
   height: 24px;
   border-radius: 100px;
@@ -21,21 +27,32 @@ const StyledCheckButton = styled.button`
   background-color: #d9d9d9;
   cursor: pointer;
   margin-top: -20px;
+  background-color: ${(p) => p.backgroundColor ?? null};
 `;
 
 interface PropTypes {
-  contents: string;
-  isChecked?: boolean;
-  period?: TodoPeriod;
+  todo: Todo;
+  isCheck: boolean;
+  onClickTodo: (position: { top: number; right: number }, todo: Todo) => void;
 }
 
+const todoModalHeight = 423;
+
 export const SideTodo = ({
-  contents = '',
-  isChecked = false,
-  period,
+  todo,
+  isCheck,
+  onClickTodo = () => {},
 }: PropTypes) => {
+  const { id, contents, TodoPeriod: period } = todo;
+  const [el, setEl] = useState<HTMLDivElement | undefined>(undefined);
+
+  const getThisRect = useCallback((): DOMRect | undefined => {
+    if (!el) return undefined;
+    return el.getBoundingClientRect();
+  }, [el]);
+
   return (
-    <StyledSideTodoWrapper>
+    <StyledSideTodoWrapper ref={(element: HTMLDivElement) => setEl(element)}>
       <div
         style={{
           display: 'flex',
@@ -44,7 +61,13 @@ export const SideTodo = ({
           alignItems: 'center',
         }}
       >
-        <StyledCheckButton type="button">
+        <StyledEmptyInsideColorCircleButton
+          type="button"
+          onClick={() => {
+            consoleLog(`todoId: ${id}, category: ${todo.Category}`);
+          }}
+          backgroundColor={todo.Category?.color}
+        >
           <div
             style={{
               width: 14,
@@ -53,23 +76,50 @@ export const SideTodo = ({
               backgroundColor: '#FFFFFF',
             }}
           />
-        </StyledCheckButton>
-        <div
+        </StyledEmptyInsideColorCircleButton>
+        <button
+          type="button"
           style={{
+            height: '100%',
+            border: isCheck ? '2px solid #71E3CF' : 0,
+            backgroundColor: '#ffffff',
+            margin: 0,
+            padding: 0,
             minWidth: 283,
             maxWidth: 283,
             display: 'flex',
             flexDirection: 'column',
+            justifyContent: 'center',
             marginLeft: 10,
+            fontFamily: 'Spoqa Han Sans Neo',
+            cursor: 'pointer',
+          }}
+          onClick={(e) => {
+            const rect = getThisRect();
+            let top = 0;
+
+            if (rect) {
+              if (window.innerHeight - todoModalHeight < rect.bottom) {
+                top = window.innerHeight - todoModalHeight - 10;
+              } else {
+                top = rect.top;
+              }
+            }
+
+            onClickTodo(
+              {
+                right: rect?.right ?? 0,
+                top,
+              },
+              todo,
+            );
           }}
         >
           <span
             style={{
               minHeight: 20,
-              fontStyle: 'normal',
               fontWeight: 'bold',
               fontSize: 16,
-              letterSpacing: -0.5,
             }}
           >
             {contents.length < 20
@@ -80,14 +130,13 @@ export const SideTodo = ({
             style={{
               marginTop: 6,
               minHeight: 20,
-              fontStyle: 'normal',
               fontWeight: 'normal',
               fontSize: 16,
             }}
           >
             {!period ? '시간 미정' : 'test'}
           </span>
-        </div>
+        </button>
         <button
           type="button"
           style={{

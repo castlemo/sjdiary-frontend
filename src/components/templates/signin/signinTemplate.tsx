@@ -43,7 +43,7 @@ export const SigninTemplate = () => {
   return (
     <StyledSigninTemplate>
       <img src={TiryLogo} alt="TiryLogo" width="480" height="333" />
-      <span>version 0.0.1</span>
+      <span>version 0.0.2</span>
       <button
         style={{
           width: 299,

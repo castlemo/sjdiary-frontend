@@ -198,7 +198,6 @@ export const SignupTemplate = () => {
               }}
               type="button"
               onClick={(e) => {
-                e.preventDefault();
                 consoleLog('프로필 사진 변경하기');
               }}
             >

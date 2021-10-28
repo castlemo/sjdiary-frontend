@@ -12,7 +12,6 @@ export const AppDebug = () => {
   const [accessToken, setAccessToken] = useState<string | undefined>(undefined);
 
   const onClickAccessToken = async (e: any) => {
-    e.preventDefault();
     const token = await getToken();
     setAccessToken(token);
   };

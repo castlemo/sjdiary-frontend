@@ -9,7 +9,7 @@ const App = () => {
     <Router>
       <GlobalStyle />
       <MainRouter />
-      {process.env.REACT_APP_MODE === 'local' ? <AppDebug /> : null}
+      {/* {process.env.REACT_APP_MODE === 'local' ? <AppDebug /> : null} */}
     </Router>
   );
 };
