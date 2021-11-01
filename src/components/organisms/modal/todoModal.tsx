@@ -1,7 +1,8 @@
 /* eslint-disable no-nested-ternary */
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 
+import { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } from 'constants';
 import CircleCheckPurpleImg from '../../../assets/img/circleCheckPurpleImg.png';
 import CircleCheckGreyImg from '../../../assets/img/circleCheckGreyImg.png';
 import { Category, CreateTodo, UpdateTodo } from '../../../types';
@@ -42,16 +43,30 @@ const StyledSpan = styled.span`
   font-family: Spoqa Han Sans Neo;
 `;
 
+const StyledTimeInput = styled.input`
+  width: 22px;
+  height: 23px;
+  font-size: 18px;
+  color: #ab88f4;
+  text-decoration-line: underline;
+  border: 0px;
+  font-family: Spoqa Han Sans Neo;
+  margin: 0px;
+  padding: 0px;
+  outline: 0px;
+`;
+
 interface PropTypes {
-  todo: UpdateTodo | CreateTodo;
+  todo: UpdateTodo;
   modalType: 'UPDATE' | 'CREATE';
   modalTop: string;
   modalLeft: string;
   categories?: Category[];
   isDatePickerModalOpen: boolean;
-  onCloseModal: () => void;
+  onCloseModal: (options?: { isAll: boolean }) => void;
   setUpdateTodo: (value: React.SetStateAction<UpdateTodo>) => void;
   setIsDatePickerModalOpen: (v: boolean) => void;
+  submitUpdateTodo: () => void;
 }
 
 export const TodoModal = ({
@@ -64,8 +79,42 @@ export const TodoModal = ({
   onCloseModal,
   setUpdateTodo,
   setIsDatePickerModalOpen,
+  submitUpdateTodo,
 }: PropTypes): JSX.Element => {
-  const [today, setToday] = useState(new Date());
+  const now = new Date();
+
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: { target: any }) {
+      // 현재 document에서 mousedown 이벤트가 동작하면 호출되는 함수입니다.
+      if (modalRef.current && !modalRef.current.contains(event.target)) {
+        onCloseModal();
+      }
+    }
+
+    // 현재 document에 이벤트리스너를 추가합니다.
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [modalRef]);
+
+  const [tempStartDate, setTempStartDate] = useState<{
+    hours: number | undefined;
+    minutes: number | undefined;
+  }>({
+    hours: undefined,
+    minutes: undefined,
+  });
+
+  const [tempEndDate, setTempEndDate] = useState<{
+    hours: number | undefined;
+    minutes: number | undefined;
+  }>({
+    hours: undefined,
+    minutes: undefined,
+  });
 
   // 카테고리 설정 메뉴 오픈 여부
   const [isCategorySettingMenuOpen, setIsCategorySettingMenuOpen] =
@@ -75,46 +124,95 @@ export const TodoModal = ({
   const categorySettingRef = useRef<HTMLDivElement>(null);
 
   // 시간 설정 여부
-  const [isTime, setIsTime] = useState<boolean>(false);
+  const [isTimeSetting, setIsTimeSetting] = useState<boolean>(false);
 
+  // 시작시간 OR 종료시간
   const [isStartDate, setIsStartDate] = useState(true);
 
-  const startDateRef = useRef<HTMLDivElement>(null);
-  const endDateRef = useRef<HTMLButtonElement>(null);
-
-  const [datePickerModalTop, SetDatePickerModalTop] = useState(0);
-  const [datePickerModalLeft, SetDatePickerModalLeft] = useState(0);
-
   // 시작 시간 Date
-  const [checkedStartDate, setCheckedStartDate] = useState<
-    | {
-        year: number;
-        month: number;
-        date: number;
-      }
-    | undefined
-  >(undefined);
+  const [checkedStartDate, setCheckedStartDate] = useState<{
+    year: number;
+    month: number;
+    date: number;
+    hours: number;
+    minutes: number;
+  }>({
+    year: now.getFullYear(),
+    month: now.getMonth(),
+    date: now.getDate(),
+    hours: now.getHours(),
+    minutes: now.getMinutes(),
+  });
 
   // 종료 시간 Date
-  const [checkedEndDate, setCheckedEndDate] = useState<
-    | {
-        year: number;
-        month: number;
-        date: number;
-      }
-    | undefined
-  >(undefined);
+  const [checkedEndDate, setCheckedEndDate] = useState<{
+    year: number;
+    month: number;
+    date: number;
+    hours: number;
+    minutes: number;
+  }>({
+    year: now.getFullYear(),
+    month: now.getMonth(),
+    date: now.getDate(),
+    hours: now.getHours(),
+    minutes: now.getMinutes(),
+  });
+
+  useEffect(() => {
+    const startedAt = isTimeSetting
+      ? new Date(
+          checkedStartDate.year,
+          checkedStartDate.month,
+          checkedStartDate.date,
+          checkedStartDate.hours,
+          checkedStartDate.minutes,
+        )
+      : new Date(
+          checkedStartDate.year,
+          checkedStartDate.month,
+          checkedStartDate.date,
+        );
+    const endedAt = isTimeSetting
+      ? new Date(
+          checkedEndDate.year,
+          checkedEndDate.month,
+          checkedEndDate.date,
+          checkedEndDate.hours,
+          checkedEndDate.minutes,
+        )
+      : new Date(
+          checkedEndDate.year,
+          checkedEndDate.month,
+          checkedEndDate.date,
+        );
+    setUpdateTodo({
+      ...todo,
+      TodoPeriod: {
+        ...todo.TodoPeriod,
+        isTime: isTimeSetting,
+        startedAt,
+        endedAt,
+      },
+    });
+  }, [
+    checkedStartDate,
+    checkedEndDate,
+    setCheckedStartDate,
+    setCheckedEndDate,
+  ]);
 
   const onLeftButtonClick = () => {
-    onCloseModal();
+    onCloseModal({ isAll: true });
   };
 
   const onRightButtonClick = () => {
-    onCloseModal();
+    submitUpdateTodo();
+    onCloseModal({ isAll: true });
   };
 
   return (
-    <StyledTodoModalWrapper top={modalTop} left={modalLeft} ref={startDateRef}>
+    <StyledTodoModalWrapper top={modalTop} left={modalLeft} ref={modalRef}>
       <span
         style={{
           display: 'flex',
@@ -153,13 +251,10 @@ export const TodoModal = ({
           value={todo.contents}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
             const { value } = e.target;
-            if (Object.keys(todo).includes('id')) {
-              setUpdateTodo({
-                id: (todo as UpdateTodo).id,
-                ...todo,
-                contents: value,
-              });
-            }
+            setUpdateTodo({
+              ...todo,
+              contents: value,
+            });
           }}
         />
       </div>
@@ -191,6 +286,7 @@ export const TodoModal = ({
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
+            marginRight: 20,
           }}
           ref={categorySettingRef}
         >
@@ -198,7 +294,7 @@ export const TodoModal = ({
             type="button"
             style={{
               display: 'flex',
-              justifyContent: 'center',
+              justifyContent: 'space-between',
               alignItems: 'center',
               backgroundColor: '#ffffff',
               border: 0,
@@ -215,17 +311,17 @@ export const TodoModal = ({
               backgroundColor={todo.Category?.color || '#ffffff'}
               style={{ border: '1px solid #d6c2ff' }}
             />
+            <span
+              style={{
+                marginLeft: 10,
+                fontSize: 18,
+                color: todo.Category?.color || '#D4D4D4',
+                fontFamily: 'Spoqa Han Sans Neo',
+              }}
+            >
+              {todo.Category?.name ?? '카테고리 미정'}
+            </span>
           </button>
-          <span
-            style={{
-              marginLeft: 10,
-              marginRight: 20,
-              fontSize: 18,
-              color: todo.Category?.color || '#D4D4D4',
-            }}
-          >
-            {todo.Category?.name ?? '카테고리 미정'}
-          </span>
         </div>
       </div>
       {isCategorySettingMenuOpen ? (
@@ -268,18 +364,18 @@ export const TodoModal = ({
               backgroundColor: '#FFFFFF',
             }}
             onClick={() => {
-              setIsTime(!isTime);
+              setIsTimeSetting(!isTimeSetting);
             }}
           >
             <img
-              src={isTime ? CircleCheckPurpleImg : CircleCheckGreyImg}
-              alt={isTime ? 'TimeCheckImg' : 'TimeNotCheckImg'}
+              src={isTimeSetting ? CircleCheckGreyImg : CircleCheckPurpleImg}
+              alt={isTimeSetting ? 'TimeNotCheckImg' : 'TimeCheckImg'}
             />
             <span
               style={{
                 marginLeft: 10,
                 fontSize: 18,
-                color: isTime ? '#AB88F4' : '#D4D4D4',
+                color: isTimeSetting ? '#D4D4D4' : '#AB88F4',
               }}
             >
               시간 미정
@@ -319,33 +415,99 @@ export const TodoModal = ({
               }}
             >
               <StyledSpan style={{ marginRight: 10 }}>
-                {checkedStartDate?.year ?? today.getFullYear()}/
-                {checkedStartDate
-                  ? checkedStartDate?.month + 1 < 10
-                    ? `0${checkedStartDate?.month + 1}`
-                    : checkedStartDate?.month + 1
-                  : today.getMonth() + 1 < 10
-                  ? `0${today.getMonth() + 1}`
-                  : today.getMonth() + 1}
+                {checkedStartDate.year}/
+                {checkedStartDate.month + 1 < 10
+                  ? `0${checkedStartDate.month + 1}`
+                  : checkedStartDate.month + 1}
                 /
-                {checkedStartDate
-                  ? checkedStartDate?.date < 10
-                    ? `0${checkedStartDate?.date}`
-                    : checkedStartDate?.date
-                  : today.getDate() < 10
-                  ? `0${today.getDate()}`
-                  : today.getDate()}
+                {checkedStartDate.date < 10
+                  ? `0${checkedStartDate.date}`
+                  : checkedStartDate.date}
               </StyledSpan>
             </button>
-            <StyledSpan>
-              {today.getHours() < 10
-                ? `0${today.getHours()}`
-                : today.getHours()}
-              :
-              {today.getMinutes() < 10
-                ? `0${today.getMinutes()}`
-                : today.getMinutes()}
-            </StyledSpan>
+            {!isTimeSetting ? (
+              <StyledSpan>
+                {checkedStartDate.hours < 10
+                  ? `0${checkedStartDate.hours}`
+                  : checkedStartDate.hours}
+                :
+                {checkedStartDate.minutes < 10
+                  ? `0${checkedStartDate.minutes}`
+                  : checkedStartDate.minutes}
+              </StyledSpan>
+            ) : (
+              <div
+                style={{
+                  height: 23,
+                  display: 'flex',
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  color: '#AB88F4',
+                }}
+              >
+                <StyledTimeInput
+                  maxLength={2}
+                  value={
+                    tempStartDate?.hours !== undefined
+                      ? tempStartDate.hours
+                      : checkedStartDate.hours < 10
+                      ? `0${checkedStartDate.hours}`
+                      : checkedStartDate.hours
+                  }
+                  onBlur={() => {
+                    if (tempStartDate?.hours) {
+                      setCheckedStartDate({
+                        ...checkedStartDate,
+                        hours: tempStartDate.hours,
+                      });
+                    }
+                    setTempStartDate({ hours: undefined, minutes: undefined });
+                  }}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const hours = Number(e.target.value);
+                    if (!Number.isNaN(hours)) {
+                      if (hours < 24) {
+                        setTempStartDate({ hours, minutes: undefined });
+                      } else {
+                        window.alert('시간은 23시까지 설정가능합니다.');
+                        setTempStartDate({ hours: 0, minutes: undefined });
+                      }
+                    }
+                  }}
+                />
+                :
+                <StyledTimeInput
+                  value={
+                    tempStartDate.minutes !== undefined
+                      ? tempStartDate.minutes
+                      : checkedStartDate.minutes < 10
+                      ? `0${checkedStartDate.minutes}`
+                      : checkedStartDate.minutes
+                  }
+                  onBlur={() => {
+                    if (tempStartDate.minutes) {
+                      setCheckedStartDate({
+                        ...checkedStartDate,
+                        minutes: tempStartDate.minutes,
+                      });
+                    }
+                    setTempStartDate({ hours: undefined, minutes: undefined });
+                  }}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const minutes = Number(e.target.value);
+                    if (!Number.isNaN(minutes)) {
+                      if (minutes < 60) {
+                        setTempStartDate({ minutes, hours: undefined });
+                      } else {
+                        window.alert('분은 59분까지 설정가능합니다.');
+                        setTempStartDate({ minutes: 0, hours: undefined });
+                      }
+                    }
+                  }}
+                />
+              </div>
+            )}
           </div>
         </div>
         <div
@@ -375,40 +537,105 @@ export const TodoModal = ({
                 backgroundColor: '#ffffff',
                 cursor: 'pointer',
               }}
-              ref={endDateRef}
               onClick={() => {
                 setIsDatePickerModalOpen(true);
                 setIsStartDate(false);
               }}
             >
               <StyledSpan style={{ marginRight: 10 }}>
-                {checkedEndDate?.year ?? today.getFullYear()}/
-                {checkedEndDate
-                  ? checkedEndDate?.month + 1 < 10
-                    ? `0${checkedEndDate?.month + 1}`
-                    : checkedEndDate?.month + 1
-                  : today.getMonth() + 1 < 10
-                  ? `0${today.getMonth() + 1}`
-                  : today.getMonth() + 1}
+                {checkedEndDate.year}/
+                {checkedEndDate.month + 1 < 10
+                  ? `0${checkedEndDate.month + 1}`
+                  : checkedEndDate.month + 1}
                 /
-                {checkedEndDate
-                  ? checkedEndDate?.date < 10
-                    ? `0${checkedEndDate?.date}`
-                    : checkedEndDate?.date
-                  : today.getDate() < 10
-                  ? `0${today.getDate()}`
-                  : today.getDate()}
+                {checkedEndDate.date < 10
+                  ? `0${checkedEndDate.date}`
+                  : checkedEndDate.date}
               </StyledSpan>
             </button>
-            <StyledSpan>
-              {today.getHours() < 10
-                ? `0${today.getHours()}`
-                : today.getHours()}
-              :
-              {today.getMinutes() < 10
-                ? `0${today.getMinutes()}`
-                : today.getMinutes()}
-            </StyledSpan>
+            {!isTimeSetting ? (
+              <StyledSpan>
+                {checkedEndDate.hours < 10
+                  ? `0${checkedEndDate.hours}`
+                  : checkedEndDate.hours}
+                :
+                {checkedEndDate.minutes < 10
+                  ? `0${checkedEndDate.minutes}`
+                  : checkedEndDate.minutes}
+              </StyledSpan>
+            ) : (
+              <div
+                style={{
+                  height: 23,
+                  display: 'flex',
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  color: '#AB88F4',
+                }}
+              >
+                <StyledTimeInput
+                  maxLength={2}
+                  value={
+                    tempEndDate?.hours !== undefined
+                      ? tempEndDate.hours
+                      : checkedEndDate.hours < 10
+                      ? `0${checkedEndDate.hours}`
+                      : checkedEndDate.hours
+                  }
+                  onBlur={() => {
+                    if (tempEndDate?.hours) {
+                      setCheckedEndDate({
+                        ...checkedEndDate,
+                        hours: tempEndDate.hours,
+                      });
+                    }
+                    setTempEndDate({ hours: undefined, minutes: undefined });
+                  }}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const hours = Number(e.target.value);
+                    if (!Number.isNaN(hours)) {
+                      if (hours < 24) {
+                        setTempEndDate({ hours, minutes: undefined });
+                      } else {
+                        window.alert('시간은 23시까지 설정가능합니다.');
+                        setTempEndDate({ hours: 0, minutes: undefined });
+                      }
+                    }
+                  }}
+                />
+                :
+                <StyledTimeInput
+                  value={
+                    tempEndDate.minutes !== undefined
+                      ? tempEndDate.minutes
+                      : checkedEndDate.minutes < 10
+                      ? `0${checkedEndDate.minutes}`
+                      : checkedEndDate.minutes
+                  }
+                  onBlur={() => {
+                    if (tempEndDate.minutes) {
+                      setCheckedEndDate({
+                        ...checkedEndDate,
+                        minutes: tempEndDate.minutes,
+                      });
+                    }
+                    setTempEndDate({ hours: undefined, minutes: undefined });
+                  }}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const minutes = Number(e.target.value);
+                    if (!Number.isNaN(minutes)) {
+                      if (minutes < 60) {
+                        setTempEndDate({ minutes, hours: undefined });
+                      } else {
+                        window.alert('분은 59분까지 설정가능합니다.');
+                        setTempEndDate({ minutes: 0, hours: undefined });
+                      }
+                    }
+                  }}
+                />
+              </div>
+            )}
           </div>
         </div>
         {isDatePickerModalOpen ? (

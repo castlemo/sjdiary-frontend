@@ -40,9 +40,7 @@ export const ProfileHeader = ({ me }: { me?: User }) => {
         >
           {me?.nickname ? me?.nickname : me?.name}
         </span>
-        <span style={{ fontSize: 16, fontWeight: 300, letterSpacing: -0.5 }}>
-          {me?.motto}
-        </span>
+        <span style={{ fontSize: 16, fontWeight: 300 }}>{me?.motto}</span>
       </div>
     </StyledProfileHeader>
   );

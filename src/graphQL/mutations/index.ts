@@ -1,5 +1,7 @@
 import { gql } from '@apollo/client';
 
+export * from './types';
+
 export const REGISTER_USER = gql`
   mutation RegisterUser($input: RegisterUserInput!) {
     registerUser(input: $input) {
@@ -13,6 +15,20 @@ export const REGISTER_USER = gql`
 export const CREATE_TODO = gql`
   mutation CreateTodo($input: CreateTodoInput!) {
     createTodo(input: $input) {
+      id
+      contents
+      allIndex
+      categoryIndex
+      checkedAt
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const UPDATE_TODO = gql`
+  mutation UpdateTodo($input: UpdateTodoInput!) {
+    updateTodo(input: $input) {
       id
       contents
       allIndex

@@ -44,6 +44,17 @@ export const GET_TODOS = gql`
       checkedAt
       createdAt
       updatedAt
+      Category {
+        id
+        name
+        color
+      }
+      TodoPeriod {
+        id
+        isTime
+        startedAt
+        endedAt
+      }
     }
   }
 `;

@@ -1,7 +1,9 @@
 import styled from 'styled-components';
+
+import { useEffect, useRef } from 'react';
 import { Category, CreateTodo, UpdateTodo } from '../../../types';
-import { consoleLog } from '../../../utils';
-import { ColorCircle } from '../../atoms';
+import CheckButtonImg from '../../../assets/img/checkButton.png';
+import { ColorCircle, ImageButton } from '../../atoms';
 
 const StyledCategorySelectMenuWrapper = styled.div`
   display: flex;
@@ -21,7 +23,6 @@ const StyledCategorySelectMenu = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  /* background: red; */
   margin-top: 51px;
   width: 100%;
   height: 279px;
@@ -74,10 +75,26 @@ export const CategorySelectMenu = ({
   setUpdateTodo = () => {},
   onCloseMenu = () => {},
 }: PropTypes): JSX.Element => {
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: { target: any }) {
+      // 현재 document에서 mousedown 이벤트가 동작하면 호출되는 함수입니다.
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        onCloseMenu();
+      }
+    }
+
+    // 현재 document에 이벤트리스너를 추가합니다.
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [menuRef]);
+
   return (
-    <StyledCategorySelectMenuWrapper>
+    <StyledCategorySelectMenuWrapper ref={menuRef}>
       <StyledCategorySelectMenu>
-        <StyledCategorySelectMenuItem />
         {categories.map((category) => (
           <StyledCategorySelectMenuItem
             key={category.id}
@@ -116,7 +133,9 @@ export const CategorySelectMenu = ({
                 {category.name}
               </span>
             </div>
-            <span>체크버튼</span>
+            {todo.Category?.id === category.id ? (
+              <ImageButton imgSrc={CheckButtonImg} imgAlt="CheckButtonImg" />
+            ) : null}
           </StyledCategorySelectMenuItem>
         ))}
       </StyledCategorySelectMenu>

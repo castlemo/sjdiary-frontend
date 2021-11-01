@@ -28,11 +28,28 @@ export interface TodoPeriod {
   endedAt: Date;
 }
 
-export type CreateTodo = Pick<Todo, 'contents' | 'Category'>;
-export type UpdateTodo = Partial<Todo> & Pick<Todo, 'id'>;
+export type CreateTodo = Pick<Todo, 'contents' | 'Category' | 'TodoPeriod'>;
+export interface UpdateTodo {
+  id: number;
+  contents: string;
+  allIndex: number;
+  categoryIndex?: number;
+  checkedAt?: Date;
+  TodoPeriod?: Partial<TodoPeriod>;
+  Category?: Partial<Category>;
+}
 
 export interface CreateTodoMutationInput {
   contents: string;
+  categoryId?: number;
+  isTime?: boolean;
+  startedAt?: Date;
+  endedAt?: Date;
+}
+
+export interface UpdateTodoMutationInput {
+  todoId: number;
+  contents?: string;
   categoryId?: number;
   isTime?: boolean;
   startedAt?: Date;

@@ -77,16 +77,20 @@ const StyledDateItem = styled.button`
 `;
 
 interface PropTypes {
-  checkedDate: { year: number; month: number; date: number } | undefined;
-  setCheckedDate: (
-    value:
-      | {
-          year: number;
-          month: number;
-          date: number;
-        }
-      | undefined,
-  ) => void;
+  checkedDate: {
+    year: number;
+    month: number;
+    date: number;
+    hours: number;
+    minutes: number;
+  };
+  setCheckedDate: (value: {
+    year: number;
+    month: number;
+    date: number;
+    hours: number;
+    minutes: number;
+  }) => void;
   top: number;
   left: number;
   closeModal: () => void;
@@ -107,17 +111,12 @@ export const DatePicker = ({
   const datePickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    console.log(`useEffect()`);
-
     function handleClickOutside(event: { target: any }) {
-      console.log(datePickerRef);
-
       // 현재 document에서 mousedown 이벤트가 동작하면 호출되는 함수입니다.
       if (
         datePickerRef.current &&
         !datePickerRef.current.contains(event.target)
       ) {
-        console.log(`select의 외부 클릭을 감지!`);
         closeModal();
       }
     }
@@ -270,15 +269,13 @@ export const DatePicker = ({
                     return;
                   }
 
-                  if (isCheckedDate) {
-                    setCheckedDate(undefined);
-                  } else {
-                    setCheckedDate({
-                      year: v.year,
-                      month: v.month,
-                      date: v.date,
-                    });
-                  }
+                  setCheckedDate({
+                    year: v.year,
+                    month: v.month,
+                    date: v.date,
+                    hours: checkedDate?.hours,
+                    minutes: checkedDate?.minutes,
+                  });
                 }}
               >
                 {v.date}

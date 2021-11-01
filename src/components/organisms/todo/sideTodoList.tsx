@@ -59,18 +59,40 @@ export const SideTodoList = ({
           />
         );
         if (!isAllTodoTap) {
-          const todayTimestamp = getTodayZeroTimeTimestamp();
-          const todoKorTimestamp = +new Date(todo.createdAt);
-          if (todoKorTimestamp >= todayTimestamp) {
-            if (getTodosType === 'CATEGORY') {
-              return todo.Category?.id === selectCategoryId ? sideTodo : null;
+          if (todo.TodoPeriod) {
+            const today = new Date();
+            const startToday = +new Date(
+              today.getFullYear(),
+              today.getMonth(),
+              today.getDate(),
+              0,
+              0,
+              0,
+              1,
+            );
+            const endToday = +new Date(
+              today.getFullYear(),
+              today.getMonth(),
+              today.getDate(),
+              23,
+              59,
+              59,
+              999,
+            );
+            const KORTodoStartedAt = +new Date(todo.TodoPeriod.startedAt);
+            const KORTodoEndedAt = +new Date(todo.TodoPeriod.endedAt);
+            if (KORTodoStartedAt <= startToday || KORTodoEndedAt >= endToday) {
+              if (getTodosType === 'CATEGORY' && todo.Category) {
+                return todo.Category.id === selectCategoryId ? sideTodo : null;
+              }
+              return sideTodo;
             }
-          } else {
-            return null;
           }
+
+          return null;
         }
-        if (getTodosType === 'CATEGORY') {
-          return todo.Category?.id === selectCategoryId ? sideTodo : null;
+        if (getTodosType === 'CATEGORY' && todo.Category) {
+          return todo.Category.id === selectCategoryId ? sideTodo : null;
         }
         return sideTodo;
       })}

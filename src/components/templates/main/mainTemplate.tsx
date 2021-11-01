@@ -10,6 +10,7 @@ import {
   Todo,
   TodoModalInfo,
   UpdateTodo,
+  UpdateTodoMutationInput,
   User,
 } from '../../../types';
 import { ProfileHeader } from '../../organisms/header/profileHeader';
@@ -98,6 +99,7 @@ interface PropTypes {
         }>
       | undefined,
   ) => void;
+  submitUpdateTodo: () => void;
   setCreateTodo: (value: React.SetStateAction<CreateTodo>) => void;
   submitCreateTodo: (
     e?: React.MouseEvent<HTMLButtonElement, MouseEvent>,
@@ -131,6 +133,7 @@ export const MainTemplate = ({
   createTodoMutation,
   setCreateTodo = () => {},
   submitCreateTodo = () => {},
+  submitUpdateTodo = () => {},
   onCloseModal = () => {},
   setTodoModalInfo = () => {},
   onClickTodo = () => {},
@@ -162,9 +165,11 @@ export const MainTemplate = ({
             rightWord="오늘의 할 일"
             onLeftClick={() => {
               setIsAllTodoTap(true);
+              setGetTodosType('ALL');
             }}
             onRightClick={() => {
               setIsAllTodoTap(false);
+              setGetTodosType('TODAY');
             }}
             wrapperStyles={{ marginTop: 26 }}
             onCloseModal={onCloseModal}
@@ -205,13 +210,14 @@ export const MainTemplate = ({
           <TodoModal
             todo={updateTodo}
             modalType={todoModalInfo.type}
-            modalTop={`${todoModalInfo.top + 5}px`}
-            modalLeft={`${todoModalInfo.left + 5}px`}
+            modalTop={`${todoModalInfo.top}px`}
+            modalLeft={`${todoModalInfo.left}px`}
             onCloseModal={onCloseModal}
             setUpdateTodo={setUpdateTodo}
             categories={categories}
             isDatePickerModalOpen={isDatePickerModalOpen}
             setIsDatePickerModalOpen={setIsDatePickerModalOpen}
+            submitUpdateTodo={submitUpdateTodo}
           />
         ) : null}
       </StyledBody>

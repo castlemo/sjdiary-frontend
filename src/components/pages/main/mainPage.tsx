@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from '@apollo/client';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { LoadingPage } from '..';
-import { CREATE_TODO } from '../../../graphQL/mutations';
+import { CREATE_TODO, UPDATE_TODO } from '../../../graphQL/mutations';
 import { GET_CATEGORIES, GET_TODOS, ME } from '../../../graphQL/queries';
 
 import {
@@ -12,6 +12,7 @@ import {
   Todo,
   TodoModalInfo,
   UpdateTodo,
+  UpdateTodoMutationInput,
   User,
 } from '../../../types';
 import { consoleLog } from '../../../utils';
@@ -33,12 +34,22 @@ export const MainPage = (): JSX.Element => {
     undefined,
   );
 
+  console.log({ getTodosType, selectCategoryId });
+
   // 업데이트 투두 모달 오픈 여부
   const [isUpdateTodoModalOpen, setIsUpdateTodoModalOpen] =
     useState<boolean>(false);
 
   // 업데이트 할 투두 객체
-  const [updateTodo, setUpdateTodo] = useState<UpdateTodo>({ id: -1 });
+  const [updateTodo, setUpdateTodo] = useState<UpdateTodo>({
+    id: -1,
+    allIndex: -1,
+    contents: '',
+  });
+
+  consoleLog('--------updateTodo--------');
+  consoleLog(updateTodo);
+  consoleLog('--------updateTodo--------');
 
   // Create Todo 데이터
   const [createTodo, setCreateTodo] = useState<CreateTodo>({
@@ -75,7 +86,7 @@ export const MainPage = (): JSX.Element => {
     refetch: refetchGetTodos,
   } = useQuery<{ getTodos: Todo[] }>(GET_TODOS, {
     variables: {
-      input: { type: 'ALL', categoryId: selectCategoryId },
+      input: { type: 'ALL' },
     },
     fetchPolicy: 'network-only',
     nextFetchPolicy: 'cache-first',
@@ -126,11 +137,37 @@ export const MainPage = (): JSX.Element => {
     consoleLog('--------createTodoData--------');
   }
 
+  const [
+    updateTodoMutation,
+    { loading: updateTodoLoading, data: updateTodoData },
+  ] = useMutation<{
+    updateTodoMutation: UpdateTodoMutationInput;
+  }>(UPDATE_TODO, {
+    onCompleted: () => {
+      setUpdateTodo({
+        id: -1,
+        allIndex: -1,
+        contents: '',
+      });
+      refetchGetTodos();
+    },
+    onError: () => {
+      window.alert('투두수정에 실패했어요, 잠시 후에 시도해주세요!');
+    },
+  });
+
+  if (updateTodoData) {
+    consoleLog('--------updateTodoData--------');
+    consoleLog(updateTodoData);
+    consoleLog('--------updateTodoData--------');
+  }
+
   if (
     loadingMe ||
     loadingGetTodos ||
     loadingGetCategories ||
-    createTodoLoading
+    createTodoLoading ||
+    updateTodoLoading
   ) {
     return <LoadingPage />;
   }
@@ -140,29 +177,60 @@ export const MainPage = (): JSX.Element => {
     window.alert('Http Error');
   }
 
-  const submitCreateTodo = (
-    e?: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-  ) => {
-    e?.preventDefault();
+  const submitCreateTodo = () => {
     consoleLog('===submitCreateTodo===');
+    const input: CreateTodoMutationInput = {
+      contents: createTodo.contents,
+    };
+
+    if (createTodo.Category) {
+      input.categoryId = createTodo.Category.id;
+    }
+
+    if (createTodo.TodoPeriod) {
+      input.isTime = createTodo.TodoPeriod.isTime;
+      input.startedAt = createTodo.TodoPeriod.startedAt;
+      input.endedAt = createTodo.TodoPeriod.endedAt;
+    }
+
     consoleLog({ ...createTodo });
+    consoleLog({ input });
     if (createTodo.contents.length > 0) {
-      createTodoMutation({ variables: { input: createTodo } });
+      createTodoMutation({ variables: { input } });
     } else {
       window.alert('내용을 입력해주세요');
     }
+  };
+
+  const submitUpdateTodo = () => {
+    const input: UpdateTodoMutationInput = {
+      todoId: Number(updateTodo.id),
+    };
+
+    if (updateTodo.contents) {
+      input.contents = updateTodo.contents;
+    }
+    if (updateTodo.TodoPeriod) {
+      input.isTime = updateTodo.TodoPeriod.isTime;
+      input.startedAt = updateTodo.TodoPeriod.startedAt;
+      input.endedAt = updateTodo.TodoPeriod.endedAt;
+    }
+    if (updateTodo.Category) {
+      input.categoryId = Number(updateTodo.Category.id);
+    }
+    updateTodoMutation({ variables: { input } });
   };
 
   const onCloseModal = (options?: { isAll: boolean }) => {
     if (options?.isAll) {
       setIsDatePickerModalOpen(false);
       setIsUpdateTodoModalOpen(false);
-      setUpdateTodo({ id: -1 });
+      setUpdateTodo({ id: -1, allIndex: -1, contents: '' });
     } else if (isDatePickerModalOpen) {
       setIsDatePickerModalOpen(false);
     } else if (isUpdateTodoModalOpen) {
       setIsUpdateTodoModalOpen(false);
-      setUpdateTodo({ id: -1 });
+      setUpdateTodo({ id: -1, allIndex: -1, contents: '' });
     }
   };
 
@@ -193,7 +261,7 @@ export const MainPage = (): JSX.Element => {
       isUpdateTodoModalOpen={isUpdateTodoModalOpen}
       updateTodo={updateTodo}
       me={meData?.me}
-      todos={getTodosData?.getTodos}
+      todos={getTodosData?.getTodos ?? []}
       categories={getCategoriesData?.getCategories}
       createTodo={createTodo}
       isDatePickerModalOpen={isDatePickerModalOpen}
@@ -207,6 +275,7 @@ export const MainPage = (): JSX.Element => {
       createTodoMutation={createTodoMutation}
       setCreateTodo={setCreateTodo}
       submitCreateTodo={submitCreateTodo}
+      submitUpdateTodo={submitUpdateTodo}
       setIsDatePickerModalOpen={setIsDatePickerModalOpen}
       onCloseModal={onCloseModal}
       setTodoModalInfo={setTodoModalInfo}
