@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import { JsxEmit } from 'typescript';
 import { GetTodosType, Todo, UpdateTodo } from '../../../types';
 import { getTodayZeroTimeTimestamp } from '../../../utils';
 import { SideTodo } from '../../molecules/todo/sideTodo';
@@ -34,7 +35,6 @@ interface PropTypes {
   todos: Todo[] | undefined;
   updateTodo: UpdateTodo;
   isAllTodoTap: boolean;
-  getTodosType: GetTodosType;
   selectCategoryId: number | undefined;
   onClickTodo: (position: { top: number; right: number }, todo: Todo) => void;
 }
@@ -42,7 +42,6 @@ interface PropTypes {
 export const SideTodoList = ({
   todos = [],
   updateTodo,
-  getTodosType = 'ALL',
   isAllTodoTap = true,
   selectCategoryId = undefined,
   onClickTodo = () => {},
@@ -58,32 +57,28 @@ export const SideTodoList = ({
             isCheck={updateTodo.id === todo.id}
           />
         );
+
+        // 모든할일 상태이고 카테고리가 all일때
+        if (isAllTodoTap && !selectCategoryId) {
+          return sideTodo;
+        }
+
+        // 오늘의 할 일 상태일때
         if (!isAllTodoTap) {
+          // 시간 미정이면
           if (todo.TodoPeriod) {
-            const today = new Date();
-            const startToday = +new Date(
-              today.getFullYear(),
-              today.getMonth(),
-              today.getDate(),
-              0,
-              0,
-              0,
-              1,
-            );
-            const endToday = +new Date(
-              today.getFullYear(),
-              today.getMonth(),
-              today.getDate(),
-              23,
-              59,
-              59,
-              999,
-            );
-            const KORTodoStartedAt = +new Date(todo.TodoPeriod.startedAt);
-            const KORTodoEndedAt = +new Date(todo.TodoPeriod.endedAt);
-            if (KORTodoStartedAt <= startToday || KORTodoEndedAt >= endToday) {
-              if (getTodosType === 'CATEGORY' && todo.Category) {
-                return todo.Category.id === selectCategoryId ? sideTodo : null;
+            const today = +new Date();
+            const todoStartedAt = +new Date(todo.TodoPeriod.startedAt);
+            const todoEndedAt = +new Date(todo.TodoPeriod.endedAt);
+
+            if (today - todoStartedAt > 0 && todoEndedAt - today > 0) {
+              if (selectCategoryId) {
+                if (todo.Category) {
+                  return Number(todo.Category.id) === selectCategoryId
+                    ? sideTodo
+                    : null;
+                }
+                return null;
               }
               return sideTodo;
             }
@@ -91,9 +86,16 @@ export const SideTodoList = ({
 
           return null;
         }
-        if (getTodosType === 'CATEGORY' && todo.Category) {
-          return todo.Category.id === selectCategoryId ? sideTodo : null;
+
+        if (selectCategoryId) {
+          if (todo.Category) {
+            return Number(todo.Category.id) === selectCategoryId
+              ? sideTodo
+              : null;
+          }
+          return null;
         }
+
         return sideTodo;
       })}
     </StyledSideTodoListWrapper>

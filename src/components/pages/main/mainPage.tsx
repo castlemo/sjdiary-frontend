@@ -1,13 +1,18 @@
 import { useMutation, useQuery } from '@apollo/client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { LoadingPage } from '..';
-import { CREATE_TODO, UPDATE_TODO } from '../../../graphQL/mutations';
+import {
+  CREATE_TODO,
+  DELETE_TODO,
+  UPDATE_TODO,
+} from '../../../graphQL/mutations';
 import { GET_CATEGORIES, GET_TODOS, ME } from '../../../graphQL/queries';
 
 import {
   Category,
   CreateTodo,
   CreateTodoMutationInput,
+  DeleteTodoMutationInput,
   GetTodosType,
   Todo,
   TodoModalInfo,
@@ -162,6 +167,22 @@ export const MainPage = (): JSX.Element => {
     consoleLog('--------updateTodoData--------');
   }
 
+  const [
+    deleteTodoMutation,
+    { loading: deleteTodoLoading, data: deleteTodoData },
+  ] = useMutation<{ deleteTodoMutation: DeleteTodoMutationInput }>(
+    DELETE_TODO,
+    {
+      onCompleted: () => {
+        window.alert('투두 삭제 완료!');
+        refetchGetTodos();
+      },
+      onError: () => {
+        window.alert('투두삭제에 실패했어요, 잠시 후에 시도해주세요!');
+      },
+    },
+  );
+
   if (
     loadingMe ||
     loadingGetTodos ||
@@ -273,6 +294,7 @@ export const MainPage = (): JSX.Element => {
       refetchGetTodos={refetchGetTodos}
       refetchGetCategories={refetchGetCategories}
       createTodoMutation={createTodoMutation}
+      deleteTodoMutation={deleteTodoMutation}
       setCreateTodo={setCreateTodo}
       submitCreateTodo={submitCreateTodo}
       submitUpdateTodo={submitUpdateTodo}

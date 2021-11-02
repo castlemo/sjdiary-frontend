@@ -40,6 +40,12 @@ export const UPDATE_TODO = gql`
   }
 `;
 
+export const DELETE_TODO = gql`
+  mutation DeleteTodo($todoId: Int!) {
+    deleteTodo(todoId: $todoId)
+  }
+`;
+
 export const CREATE_CATEGORY = gql`
   mutation CreateCategory($input: CreateCategoryInput!) {
     createCategory(input: $input) {

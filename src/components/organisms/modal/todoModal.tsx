@@ -3,9 +3,15 @@ import { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 
 import { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } from 'constants';
+import { MutationFunctionOptions } from '@apollo/client';
 import CircleCheckPurpleImg from '../../../assets/img/circleCheckPurpleImg.png';
 import CircleCheckGreyImg from '../../../assets/img/circleCheckGreyImg.png';
-import { Category, CreateTodo, UpdateTodo } from '../../../types';
+import {
+  Category,
+  CreateTodo,
+  DeleteTodoMutationInput,
+  UpdateTodo,
+} from '../../../types';
 import { ColorCircle } from '../../atoms';
 import { CategorySelectMenu } from '../menus';
 import { DatePicker } from '../datePicker';
@@ -67,6 +73,13 @@ interface PropTypes {
   setUpdateTodo: (value: React.SetStateAction<UpdateTodo>) => void;
   setIsDatePickerModalOpen: (v: boolean) => void;
   submitUpdateTodo: () => void;
+  deleteTodoMutation: (
+    value:
+      | MutationFunctionOptions<{
+          deleteTodoMutation: DeleteTodoMutationInput;
+        }>
+      | undefined,
+  ) => void;
 }
 
 export const TodoModal = ({
@@ -80,9 +93,8 @@ export const TodoModal = ({
   setUpdateTodo,
   setIsDatePickerModalOpen,
   submitUpdateTodo,
+  deleteTodoMutation,
 }: PropTypes): JSX.Element => {
-  const now = new Date();
-
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -124,11 +136,47 @@ export const TodoModal = ({
   const categorySettingRef = useRef<HTMLDivElement>(null);
 
   // 시간 설정 여부
-  const [isTimeSetting, setIsTimeSetting] = useState<boolean>(false);
+  const [isTimeSetting, setIsTimeSetting] = useState<boolean>(
+    todo.TodoPeriod?.isTime ? todo.TodoPeriod.isTime : false,
+  );
 
   // 시작시간 OR 종료시간
   const [isStartDate, setIsStartDate] = useState(true);
 
+  const now = new Date();
+  const startDate = {
+    year: now.getFullYear(),
+    month: now.getMonth(),
+    date: now.getDate(),
+    hours: now.getHours(),
+    minutes: now.getMinutes(),
+  };
+
+  const endDate = {
+    year: now.getFullYear(),
+    month: now.getMonth(),
+    date: now.getDate(),
+    hours: now.getHours(),
+    minutes: now.getMinutes(),
+  };
+
+  if (todo.TodoPeriod?.startedAt) {
+    const startedAt = new Date(todo.TodoPeriod?.startedAt);
+    startDate.year = startedAt.getFullYear();
+    startDate.month = startedAt.getMonth();
+    startDate.date = startedAt.getDate();
+    startDate.hours = startedAt.getHours();
+    startDate.minutes = startedAt.getMinutes();
+  }
+
+  if (todo.TodoPeriod?.endedAt) {
+    const endedAt = new Date(todo.TodoPeriod?.endedAt);
+    endDate.year = endedAt.getFullYear();
+    endDate.month = endedAt.getMonth();
+    endDate.date = endedAt.getDate();
+    endDate.hours = endedAt.getHours();
+    endDate.minutes = endedAt.getMinutes();
+  }
   // 시작 시간 Date
   const [checkedStartDate, setCheckedStartDate] = useState<{
     year: number;
@@ -136,13 +184,7 @@ export const TodoModal = ({
     date: number;
     hours: number;
     minutes: number;
-  }>({
-    year: now.getFullYear(),
-    month: now.getMonth(),
-    date: now.getDate(),
-    hours: now.getHours(),
-    minutes: now.getMinutes(),
-  });
+  }>(startDate);
 
   // 종료 시간 Date
   const [checkedEndDate, setCheckedEndDate] = useState<{
@@ -151,13 +193,7 @@ export const TodoModal = ({
     date: number;
     hours: number;
     minutes: number;
-  }>({
-    year: now.getFullYear(),
-    month: now.getMonth(),
-    date: now.getDate(),
-    hours: now.getHours(),
-    minutes: now.getMinutes(),
-  });
+  }>(endDate);
 
   useEffect(() => {
     const startedAt = isTimeSetting
@@ -203,6 +239,7 @@ export const TodoModal = ({
   ]);
 
   const onLeftButtonClick = () => {
+    deleteTodoMutation({ variables: { todoId: Number(todo.id) } });
     onCloseModal({ isAll: true });
   };
 

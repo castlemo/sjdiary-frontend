@@ -6,6 +6,7 @@ import {
   Category,
   CreateTodo,
   CreateTodoMutationInput,
+  DeleteTodoMutationInput,
   GetTodosType,
   Todo,
   TodoModalInfo,
@@ -15,7 +16,7 @@ import {
 } from '../../../types';
 import { ProfileHeader } from '../../organisms/header/profileHeader';
 import SettingButtonImg from '../../../assets/img/settingButton.png';
-import { Select } from '../../molecules';
+import { Select, SideTodo } from '../../molecules';
 import { CategorySettingTemplate } from '../category';
 import {
   MainHeader,
@@ -99,6 +100,13 @@ interface PropTypes {
         }>
       | undefined,
   ) => void;
+  deleteTodoMutation: (
+    value:
+      | MutationFunctionOptions<{
+          deleteTodoMutation: DeleteTodoMutationInput;
+        }>
+      | undefined,
+  ) => void;
   submitUpdateTodo: () => void;
   setCreateTodo: (value: React.SetStateAction<CreateTodo>) => void;
   submitCreateTodo: (
@@ -131,6 +139,7 @@ export const MainTemplate = ({
   refetchGetCategories = () => {},
   setGetTodosType = () => {},
   createTodoMutation,
+  deleteTodoMutation,
   setCreateTodo = () => {},
   submitCreateTodo = () => {},
   submitUpdateTodo = () => {},
@@ -197,7 +206,6 @@ export const MainTemplate = ({
               <SideTodoList
                 todos={todos}
                 updateTodo={updateTodo}
-                getTodosType={getTodosType}
                 isAllTodoTap={isAllTodoTap}
                 selectCategoryId={selectCategoryId}
                 onClickTodo={onClickTodo}
@@ -218,6 +226,7 @@ export const MainTemplate = ({
             isDatePickerModalOpen={isDatePickerModalOpen}
             setIsDatePickerModalOpen={setIsDatePickerModalOpen}
             submitUpdateTodo={submitUpdateTodo}
+            deleteTodoMutation={deleteTodoMutation}
           />
         ) : null}
       </StyledBody>

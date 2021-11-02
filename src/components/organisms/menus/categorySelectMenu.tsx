@@ -22,7 +22,7 @@ const StyledCategorySelectMenu = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: start;
   margin-top: 51px;
   width: 100%;
   height: 279px;

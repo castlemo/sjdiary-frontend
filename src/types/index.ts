@@ -56,6 +56,10 @@ export interface UpdateTodoMutationInput {
   endedAt?: Date;
 }
 
+export interface DeleteTodoMutationInput {
+  todoId: number;
+}
+
 export interface Category {
   id: number;
   name: string;
