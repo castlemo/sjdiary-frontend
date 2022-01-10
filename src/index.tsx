@@ -12,15 +12,13 @@ import { theme } from './styles/theme';
 export const history = createBrowserHistory();
 
 ReactDOM.render(
-  <React.StrictMode>
-    <Auth0Wrapper>
-      <GraphQLProvider>
-        <ThemeProvider theme={theme}>
-          <App />
-        </ThemeProvider>
-      </GraphQLProvider>
-    </Auth0Wrapper>
-  </React.StrictMode>,
+  <Auth0Wrapper>
+    <GraphQLProvider>
+      <ThemeProvider theme={theme}>
+        <App />
+      </ThemeProvider>
+    </GraphQLProvider>
+  </Auth0Wrapper>,
   document.getElementById('root'),
 );
 

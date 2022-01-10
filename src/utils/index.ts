@@ -48,25 +48,26 @@ export const convertToDate = (dateObj: Date) => {
 
 // 주차의 시작은 월요일
 export const getWeek = (date = new Date()): number => {
+  // 월 첫날의 요일
   const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
 
-  let dayCount = 1;
-  if (firstDay !== 0) {
-    for (let i = firstDay; i < 7; i++) {
-      dayCount++;
-    }
-  }
+  // 둘째주의 시작 날짜
+  const startSecondsWeekDate = firstDay === 0 ? 9 : 9 - firstDay;
 
+  // 오늘
   const nowDate = date.getDate();
 
-  if (nowDate <= dayCount) {
+  if (nowDate < startSecondsWeekDate) {
     return 1;
   }
 
   let week = 1;
-  for (let i = dayCount + 8; i <= 32; i += 7) {
+  let tempDate = startSecondsWeekDate;
+  for (let i = 0; i <= 7; i++) {
     week++;
-    if (nowDate < i) {
+    tempDate += 7;
+
+    if (nowDate < tempDate) {
       break;
     }
   }

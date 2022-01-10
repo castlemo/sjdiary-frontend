@@ -1,5 +1,5 @@
-import { useMutation, useQuery } from '@apollo/client';
-import { useEffect } from 'react';
+import { useLazyQuery, useMutation, useQuery } from '@apollo/client';
+import { useEffect, useMemo } from 'react';
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 
 import { useAuth0 } from './auth0';
@@ -11,10 +11,13 @@ import { VERIFY_USER } from './graphQL/queries';
 import { ICreateUserInput } from './graphQL/types';
 
 export const MainRouter = (): JSX.Element => {
-  const { pathname } = useLocation();
-  const { isLoading, isAuthenticated, getAuth0UserProfile } = useAuth0();
+  const {
+    isLoading: isAuthLoading,
+    isAuthenticated,
+    getAuth0UserProfile,
+  } = useAuth0();
 
-  const [requestCreateUser] = useMutation<boolean, ICreateUserInput>(
+  const [requestCreateUser] = useMutation<unknown, ICreateUserInput>(
     CREATE_USER,
   );
 
@@ -24,11 +27,25 @@ export const MainRouter = (): JSX.Element => {
     error: errorVerifyUser,
   } = useQuery<{ verifyUser: boolean }>(VERIFY_USER, {
     fetchPolicy: 'network-only',
+    skip: !isAuthenticated,
   });
 
+  const isVerifyUser: boolean | undefined = useMemo(
+    () => dataVerifyUser?.verifyUser ?? undefined,
+    [dataVerifyUser],
+  );
+
+  const isMember = useMemo(
+    () => isAuthenticated && isVerifyUser,
+    [isAuthenticated, isVerifyUser],
+  );
+
+  const isLoading = useMemo(
+    () => isAuthLoading || loadingVerifyUser,
+    [isAuthLoading, loadingVerifyUser],
+  );
+
   useEffect(() => {
-    const isVerifyUser: boolean | undefined =
-      dataVerifyUser?.verifyUser ?? undefined;
     const createUser = async () => {
       const auth0UserProfile = await getAuth0UserProfile();
       if (auth0UserProfile) {
@@ -47,9 +64,9 @@ export const MainRouter = (): JSX.Element => {
     if (isAuthenticated && !isVerifyUser) {
       createUser();
     }
-  }, [isAuthenticated, dataVerifyUser, dataVerifyUser]);
+  }, []);
 
-  if (loadingVerifyUser || isLoading) {
+  if (isLoading) {
     return <LoadingTemplate />;
   }
 
@@ -58,21 +75,19 @@ export const MainRouter = (): JSX.Element => {
     console.log({ errorVerifyUser });
   }
 
-  if (!isAuthenticated && pathname !== ROUTES.SIGNIN) {
-    return <Navigate to={ROUTES.SIGNIN} />;
-  }
-
-  if (isAuthenticated && dataVerifyUser && pathname === ROUTES.SIGNIN) {
-    return <Navigate to={ROUTES.MAIN} />;
-  }
-
   return (
     <Routes>
       {/* main */}
-      <Route path={ROUTES.MAIN} element={<MainPage />} />
+      <Route
+        path={ROUTES.MAIN}
+        element={isMember ? <MainPage /> : <Navigate to={ROUTES.SIGNIN} />}
+      />
 
       {/* Sign In */}
-      <Route path={ROUTES.SIGNIN} element={<SigninPage />} />
+      <Route
+        path={ROUTES.SIGNIN}
+        element={isMember ? <Navigate to={ROUTES.MAIN} /> : <SigninPage />}
+      />
 
       {/* Not Found */}
       <Route path="*" element={<NotFoundPage />} />

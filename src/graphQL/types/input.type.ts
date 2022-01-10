@@ -1,3 +1,3 @@
-export interface ICreateUserInput {
+export type ICreateUserInput = {
   input: { email: string; name: string; profileImageUrl: string };
-}
+};

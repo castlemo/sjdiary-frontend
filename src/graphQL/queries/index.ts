@@ -9,17 +9,13 @@ export const VERIFY_USER = gql`
 export const ME = gql`
   query Me {
     me {
-      id
-      motto
+      createdAt
+      deletedAt
       email
+      id
       name
-      nickname
       profileImageUrl
-      UserSetting {
-        id
-        theme
-        startOfWeek
-      }
+      updatedAt
     }
   }
 `;
