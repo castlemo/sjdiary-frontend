@@ -28,7 +28,11 @@ export interface TodoPeriod {
   endedAt: Date;
 }
 
-export type CreateTodo = Pick<Todo, 'contents' | 'Category' | 'TodoPeriod'>;
+export interface CreateTodo {
+  contents?: string;
+  TodoPeriod?: Partial<TodoPeriod>;
+  Category?: Partial<Category>;
+}
 export interface UpdateTodo {
   id: number;
   contents: string;

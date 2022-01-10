@@ -5,13 +5,13 @@ import { Category, CreateTodo, UpdateTodo } from '../../../types';
 import CheckButtonImg from '../../../assets/img/checkButton.png';
 import { ColorCircle, ImageButton } from '../../atoms';
 
-const StyledCategorySelectMenuWrapper = styled.div`
+const StyledCategorySelectMenuWrapper = styled.div<{ isHeaderModal: boolean }>`
   display: flex;
   align-items: center;
   position: absolute;
   width: 90%;
   height: 340px;
-  top: 125px;
+  top: ${(p) => (p.isHeaderModal ? '68px' : '125px')};
   background: #ffffff;
   border: 0.5px solid #afafaf;
   box-sizing: border-box;
@@ -25,7 +25,7 @@ const StyledCategorySelectMenu = styled.div`
   justify-content: start;
   margin-top: 51px;
   width: 100%;
-  height: 279px;
+  height: 285px;
   border: 0;
   z-index: 3;
   top: 0px;
@@ -65,14 +65,16 @@ const StyledCategorySelectMenuItem = styled.div`
 interface PropTypes {
   categories?: Category[];
   todo: UpdateTodo | CreateTodo;
-  setUpdateTodo: (value: React.SetStateAction<UpdateTodo>) => void;
+  isHeaderModal?: boolean;
+  setTodo: (value: Category) => void;
   onCloseMenu: () => void;
 }
 
 export const CategorySelectMenu = ({
   categories = [],
   todo,
-  setUpdateTodo = () => {},
+  isHeaderModal = false,
+  setTodo = () => {},
   onCloseMenu = () => {},
 }: PropTypes): JSX.Element => {
   const menuRef = useRef<HTMLDivElement>(null);
@@ -93,20 +95,19 @@ export const CategorySelectMenu = ({
   }, [menuRef]);
 
   return (
-    <StyledCategorySelectMenuWrapper ref={menuRef}>
+    <StyledCategorySelectMenuWrapper
+      ref={menuRef}
+      isHeaderModal={isHeaderModal}
+    >
       <StyledCategorySelectMenu>
         {categories.map((category) => (
           <StyledCategorySelectMenuItem
             key={category.id}
             onClick={() => {
-              setUpdateTodo({
-                ...(todo as UpdateTodo),
-                Category: {
-                  ...(todo as UpdateTodo).Category,
-                  id: category.id,
-                  name: category.name,
-                  color: category.color,
-                },
+              setTodo({
+                id: category.id,
+                name: category.name,
+                color: category.color,
               });
               onCloseMenu();
             }}

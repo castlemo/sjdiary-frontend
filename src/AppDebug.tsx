@@ -1,13 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useHistory } from 'react-router-dom';
 import { useAuth0 } from './auth0';
-import { consoleLog } from './utils';
 
 export const AppDebug = () => {
   const { user, isLoading, isAuthenticated, getToken, signIn, signOut } =
     useAuth0();
-
-  const history = useHistory();
 
   const [accessToken, setAccessToken] = useState<string | undefined>(undefined);
 
@@ -20,6 +16,7 @@ export const AppDebug = () => {
     <div
       style={{
         display: 'flex',
+        width: '100%',
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
@@ -45,7 +42,7 @@ export const AppDebug = () => {
             width: '100%',
           }}
         >
-          <button type="button" onClick={() => signIn()}>
+          <button type="button" onClick={() => signIn({ type: 'google' })}>
             signIn
           </button>
           <button type="button" onClick={() => signOut()}>
@@ -61,9 +58,6 @@ export const AppDebug = () => {
                 const token = await getToken();
                 setAccessToken(token);
               }
-              consoleLog(`-------accessToken-------`);
-              consoleLog(accessToken);
-              consoleLog(`-------accessToken-------`);
             }}
           >
             consoleToken

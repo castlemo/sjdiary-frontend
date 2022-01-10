@@ -1,16 +1,32 @@
-import { BrowserRouter as Router } from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
+import styled from 'styled-components';
 
 import { MainRouter } from './mainRouter';
 import { GlobalStyle } from './styles/globalStyles';
 import { AppDebug } from './AppDebug';
+import { REACT_APP_MODE } from './config';
+
+const AppWrapper = styled.div`
+  width: 60%;
+  max-width: 861px;
+  height: 100vh;
+
+  display: flex;
+
+  background-color: ${({ theme }) => theme.colors.purple4};
+`;
 
 const App = () => {
   return (
-    <Router>
-      <GlobalStyle />
-      <MainRouter />
-      {/* {process.env.REACT_APP_MODE === 'local' ? <AppDebug /> : null} */}
-    </Router>
+    <>
+      <AppWrapper>
+        <BrowserRouter>
+          <GlobalStyle />
+          <MainRouter />
+        </BrowserRouter>
+      </AppWrapper>
+      {REACT_APP_MODE === 'local' && <AppDebug />}
+    </>
   );
 };
 

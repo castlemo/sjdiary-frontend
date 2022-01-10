@@ -30,7 +30,7 @@ export const TodoWrapper = ({
   children,
 }: {
   children: JSX.Element | undefined;
-}) => {
+}): JSX.Element => {
   const [state, dispatch] = useReducer(todoReducer, []);
 
   return (

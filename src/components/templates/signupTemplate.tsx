@@ -1,15 +1,13 @@
 import { useState } from 'react';
-import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { useMutation, useQuery } from '@apollo/client';
-import { useAuth0 } from '../../../auth0';
+import { useAuth0 } from '../../auth0';
 
-import SignupDefaultImg from '../../../assets/img/SignupImg.png';
-import { REGISTER_USER } from '../../../graphQL/mutations';
-import { Select } from '../../molecules';
-import { LoadingPage } from '../../pages';
-import { consoleLog } from '../../../utils';
-import { VERIFY_USER } from '../../../graphQL/queries';
+import SignupDefaultImg from '../../assets/img/signupImg.png';
+import { REGISTER_USER } from '../../graphQL/mutations';
+import { Select } from '../molecules';
+import { VERIFY_USER } from '../../graphQL/queries';
+import { LoadingTemplate } from '.';
 
 const StyledSignupTemplate = styled.div`
   height: 100vh;
@@ -48,119 +46,27 @@ export enum StartOfWeek {
   SUNDAY = 'SUNDAY',
 }
 
-export const SignupTemplate = () => {
-  const history = useHistory();
-  const { user, isAuthenticated } = useAuth0();
+interface PropTypes {
+  nickname: string;
+  motto: string;
+  isMonday: boolean;
+  setNickname: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  setMotto: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  setIsMonday: React.Dispatch<React.SetStateAction<boolean>>;
+  onSignUp: () => void;
+}
 
-  const {
-    loading: loadingVerifyUser,
-    error,
-    data: verifyUserData,
-  } = useQuery<{ verifyUser: boolean }>(VERIFY_USER, {
-    fetchPolicy: 'network-only',
-  });
-
-  const isUser = !!verifyUserData?.verifyUser;
-
-  const [isRequestLoading, setIsRequestLoading] = useState(false);
-
-  const [nickname, setNickname] = useState<string>('');
-  const [nicknameStyles, setNicknameStyles] = useState<React.CSSProperties>({
-    textDecorationLine: 'underline',
-    color: '#C5C5C5',
-  });
-
-  const [motto, setMotto] = useState<string>('');
-  const [mottoStyles, setMottoStyles] = useState<React.CSSProperties>({
-    textDecorationLine: 'underline',
-    color: '#C5C5C5',
-  });
-
-  const [profileImgUrl, setProfileImgUrl] = useState<string | undefined>(
-    undefined,
-  );
-
-  const [isMonday, setIsMonday] = useState<boolean>(true);
-
-  const [registerUser] = useMutation(REGISTER_USER, {
-    onCompleted: () => {
-      setIsRequestLoading(false);
-      history.push('/');
-    },
-    onError: () => {
-      window.alert('가입에 실패했어요, 잠시 후에 시도해주세요!');
-    },
-  });
-
-  const onNicknameHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
-    if (value.length <= 10) {
-      setNickname(value);
-    }
-
-    if (value.length > 0) {
-      setNicknameStyles({
-        textDecorationLine: undefined,
-        color: '#000000',
-      });
-    } else {
-      setNicknameStyles({
-        textDecorationLine: 'underline',
-        color: '#C5C5C5',
-      });
-    }
-  };
-
-  const onMottoHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
-    if (value.length <= 20) {
-      setMotto(value);
-    }
-
-    if (value.length > 0) {
-      setMottoStyles({
-        textDecorationLine: undefined,
-        color: '#000000',
-      });
-    } else {
-      setMottoStyles({
-        textDecorationLine: 'underline',
-        color: '#C5C5C5',
-      });
-    }
-  };
-
-  const onSignUp = () => {
-    if (nickname && user) {
-      setIsRequestLoading(true);
-      registerUser({
-        variables: {
-          input: {
-            email: user.email,
-            name: user.name,
-            profileImageUrl: user.picture,
-            nickname,
-            motto,
-            startOfWeek: isMonday ? StartOfWeek.MONDAY : StartOfWeek.SUNDAY,
-          },
-        },
-      });
-    } else {
-      window.alert('이름은 필수 항목입니다.');
-    }
-  };
-
-  if (loadingVerifyUser) {
-    <LoadingPage isTransparency />;
-  }
-
-  if (!isAuthenticated || isUser) {
-    history.push('/');
-  }
-
+export const SignupTemplate = ({
+  nickname = '',
+  motto = '',
+  isMonday = false,
+  setNickname = () => {},
+  setMotto = () => {},
+  setIsMonday = () => {},
+  onSignUp = () => {},
+}: PropTypes): JSX.Element => {
   return (
     <StyledSignupTemplate>
-      {isRequestLoading ? <LoadingPage isTransparency /> : null}
       <StyledSignupWrapper>
         <StyledProfileWrapper>
           <StyledProfileImageWrapper>
@@ -198,7 +104,7 @@ export const SignupTemplate = () => {
               }}
               type="button"
               onClick={(e) => {
-                consoleLog('프로필 사진 변경하기');
+                window.alert('개발중인 기능입니다.');
               }}
             >
               프로필 사진 변경하기
@@ -252,12 +158,14 @@ export const SignupTemplate = () => {
                   fontWeight: 500,
                   letterSpacing: -0.5,
                   outline: 'none',
-                  ...nicknameStyles,
+                  textDecorationLine:
+                    nickname.length > 0 ? undefined : 'underline',
+                  color: nickname.length > 0 ? '#000000' : '#C5C5C5',
                 }}
                 type="text"
                 placeholder="티리 Tiry"
                 value={nickname}
-                onChange={onNicknameHandler}
+                onChange={setNickname}
                 maxLength={10}
               />
             </div>
@@ -308,12 +216,14 @@ export const SignupTemplate = () => {
                   fontWeight: 500,
                   letterSpacing: -0.5,
                   outline: 'none',
-                  ...mottoStyles,
+                  textDecorationLine:
+                    motto.length > 0 ? undefined : 'underline',
+                  color: motto.length > 0 ? '#000000' : '#C5C5C5',
                 }}
                 type="text"
                 placeholder="나의 다이어리를 할 일로 가득 채워보자!"
                 value={motto}
-                onChange={onMottoHandler}
+                onChange={setMotto}
                 maxLength={20}
               />
             </div>

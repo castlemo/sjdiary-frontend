@@ -13,7 +13,7 @@ export const history = createBrowserHistory();
 
 ReactDOM.render(
   <React.StrictMode>
-    <Auth0Wrapper history={history}>
+    <Auth0Wrapper>
       <GraphQLProvider>
         <ThemeProvider theme={theme}>
           <App />

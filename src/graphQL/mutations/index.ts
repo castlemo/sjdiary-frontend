@@ -12,6 +12,14 @@ export const REGISTER_USER = gql`
   }
 `;
 
+export const CREATE_USER = gql`
+  mutation CreateUser($input: CreateUserInput!) {
+    createUser(input: $input) {
+      id
+    }
+  }
+`;
+
 export const CREATE_TODO = gql`
   mutation CreateTodo($input: CreateTodoInput!) {
     createTodo(input: $input) {

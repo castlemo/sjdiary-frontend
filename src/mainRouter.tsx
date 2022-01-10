@@ -1,94 +1,81 @@
-/* eslint-disable no-nested-ternary */
-import { useQuery } from '@apollo/client';
-import { ifError } from 'assert';
-import {
-  useHistory,
-  Switch,
-  Route,
-  Redirect,
-  RouteProps,
-  RouteComponentProps,
-} from 'react-router-dom';
+import { useMutation, useQuery } from '@apollo/client';
+import { useEffect } from 'react';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 
 import { useAuth0 } from './auth0';
-import {
-  SigninPage,
-  SignupPage,
-  MainPage,
-  LoadingPage,
-  NotFoundPage,
-} from './components/pages';
-import { API_URL } from './constant';
+import { SigninPage, MainPage, NotFoundPage } from './components/pages';
+import { LoadingTemplate } from './components/templates';
+import { ROUTES } from './constant';
+import { CREATE_USER } from './graphQL/mutations';
 import { VERIFY_USER } from './graphQL/queries';
-import { Test } from './test';
-import { consoleLog } from './utils';
+import { ICreateUserInput } from './graphQL/types';
 
-const TiryRoute = ({
-  children,
-  ...props
-}: RouteProps & {
-  children?: JSX.Element | null;
-}) => {
-  const { isAuthenticated } = useAuth0();
-  const history = useHistory();
+export const MainRouter = (): JSX.Element => {
+  const { pathname } = useLocation();
+  const { isLoading, isAuthenticated, getAuth0UserProfile } = useAuth0();
+
+  const [requestCreateUser] = useMutation<boolean, ICreateUserInput>(
+    CREATE_USER,
+  );
 
   const {
+    data: dataVerifyUser,
     loading: loadingVerifyUser,
-    error,
-    data: verifyUserData,
+    error: errorVerifyUser,
   } = useQuery<{ verifyUser: boolean }>(VERIFY_USER, {
     fetchPolicy: 'network-only',
   });
 
-  const isUser = !!verifyUserData?.verifyUser;
+  useEffect(() => {
+    const isVerifyUser: boolean | undefined =
+      dataVerifyUser?.verifyUser ?? undefined;
+    const createUser = async () => {
+      const auth0UserProfile = await getAuth0UserProfile();
+      if (auth0UserProfile) {
+        requestCreateUser({
+          variables: {
+            input: {
+              email: auth0UserProfile.email ?? '',
+              name: auth0UserProfile.name ?? '',
+              profileImageUrl: auth0UserProfile.picture ?? '',
+            },
+          },
+        });
+      }
+    };
 
-  consoleLog({ isAuthenticated, isUser, path: history.location.pathname });
-
-  const render = (routeProps: RouteComponentProps) => {
-    if (!isAuthenticated) {
-      return <Redirect to="/signin" />;
+    if (isAuthenticated && !isVerifyUser) {
+      createUser();
     }
+  }, [isAuthenticated, dataVerifyUser, dataVerifyUser]);
 
-    if (loadingVerifyUser) {
-      return <LoadingPage />;
-    }
+  if (loadingVerifyUser || isLoading) {
+    return <LoadingTemplate />;
+  }
 
-    if (!isUser) {
-      return <Redirect to="/signup" />;
-    }
+  if (errorVerifyUser) {
+    // TODO Error Page 작업
+    console.log({ errorVerifyUser });
+  }
 
-    return props.render ? props.render(routeProps) : children;
-  };
+  if (!isAuthenticated && pathname !== ROUTES.SIGNIN) {
+    return <Navigate to={ROUTES.SIGNIN} />;
+  }
 
-  return <Route {...props} render={render} />;
-};
-
-export const MainRouter = () => {
-  const { isLoading } = useAuth0();
-
-  if (isLoading) {
-    return <LoadingPage />;
+  if (isAuthenticated && dataVerifyUser && pathname === ROUTES.SIGNIN) {
+    return <Navigate to={ROUTES.MAIN} />;
   }
 
   return (
-    <Switch>
-      <Route path="/signin">
-        <SigninPage />
-      </Route>
+    <Routes>
+      {/* main */}
+      <Route path={ROUTES.MAIN} element={<MainPage />} />
 
-      <Route path="/signup">
-        <SignupPage />
-      </Route>
+      {/* Sign In */}
+      <Route path={ROUTES.SIGNIN} element={<SigninPage />} />
 
-      <TiryRoute path="/">
-        <MainPage />
-      </TiryRoute>
-
-      <Route path="/test">
-        <Test />
-      </Route>
-
-      <Route path="*" component={NotFoundPage} />
-    </Switch>
+      {/* Not Found */}
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
   );
 };

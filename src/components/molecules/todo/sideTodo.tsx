@@ -4,7 +4,6 @@ import { useEffect, useState, createRef, useCallback, useMemo } from 'react';
 import { StringLiteralLike } from 'typescript';
 import TodoMenuButtonImg from '../../../assets/img/todoMenuButtonImg.png';
 import { Todo, TodoPeriod, UpdateTodo } from '../../../types';
-import { consoleLog } from '../../../utils';
 
 const StyledSideTodoWrapper = styled.div`
   min-height: 80px;
@@ -141,9 +140,7 @@ export const SideTodo = ({
       >
         <StyledEmptyInsideColorCircleButton
           type="button"
-          onClick={() => {
-            consoleLog(`todoId: ${id}, category: ${todo.Category}`);
-          }}
+          onClick={() => {}}
           backgroundColor={todo.Category?.color}
         >
           <div

@@ -35,18 +35,22 @@
         }
     },
     "rules": {
-        // 규칙들
         "react/react-in-jsx-scope": "off", // 파일마다 React를 임포트하라고 뜨는 에러 방지를 위해 추가한 룰이다.
         "react/jsx-filename-extension": [
             1,
             { "extensions": [".js", ".jsx", ".ts", ".tsx"] }
         ],
+        "react/function-component-definition": [2, {
+            "namedComponents": "arrow-function",
+            "unnamedComponents": "arrow-function"
+        }],
         "import/prefer-default-export": "off",
         "no-shadow": "off",
         "@typescript-eslint/no-shadow": ["error"],
         "react/require-default-props": "off",
         "react/jsx-props-no-spreading": "off",
-        "import/no-cycle": "off"
+        "import/no-cycle": "off",
+        "no-plusplus": "off"
     },
     "ignorePatterns": [
         "dist/",

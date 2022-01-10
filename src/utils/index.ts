@@ -1,3 +1,5 @@
+import { Console } from 'console';
+
 export const getTodayZeroTimeTimestamp = (): number => {
   const todayDate = new Date();
   return +new Date(
@@ -8,12 +10,6 @@ export const getTodayZeroTimeTimestamp = (): number => {
     0,
     0,
   );
-};
-
-export const consoleLog = (v: any) => {
-  if (process.env.REACT_APP_MODE === 'local') {
-    console.log(v);
-  }
 };
 
 export const convertToDate = (dateObj: Date) => {
@@ -48,4 +44,32 @@ export const convertToDate = (dateObj: Date) => {
     hour,
     minute,
   };
+};
+
+// 주차의 시작은 월요일
+export const getWeek = (date = new Date()): number => {
+  const firstDay = new Date(date.getFullYear(), date.getMonth(), 1).getDay();
+
+  let dayCount = 1;
+  if (firstDay !== 0) {
+    for (let i = firstDay; i < 7; i++) {
+      dayCount++;
+    }
+  }
+
+  const nowDate = date.getDate();
+
+  if (nowDate <= dayCount) {
+    return 1;
+  }
+
+  let week = 1;
+  for (let i = dayCount + 8; i <= 32; i += 7) {
+    week++;
+    if (nowDate < i) {
+      break;
+    }
+  }
+
+  return week;
 };

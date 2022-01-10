@@ -2,29 +2,24 @@
 import { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 
-import { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } from 'constants';
-import { MutationFunctionOptions } from '@apollo/client';
 import CircleCheckPurpleImg from '../../../assets/img/circleCheckPurpleImg.png';
 import CircleCheckGreyImg from '../../../assets/img/circleCheckGreyImg.png';
-import {
-  Category,
-  CreateTodo,
-  DeleteTodoMutationInput,
-  UpdateTodo,
-} from '../../../types';
+import CheckedCalendarButtonImg from '../../../assets/img/checkedCalendarButtonImg.png';
+import CheckButtonPurpleImg from '../../../assets/img/checkButtonPurple.png';
+import { Category, CreateTodo } from '../../../types';
 import { ColorCircle } from '../../atoms';
 import { CategorySelectMenu } from '../menus';
 import { DatePicker } from '../datePicker';
 
-const StyledTodoModalWrapper = styled.div<{ top: string; left: string }>`
+const StyledTodoModalWrapper = styled.div<{ top: string }>`
   display: flex;
   flex-direction: column;
   align-items: center;
   position: absolute;
-  width: 403px;
-  height: 423px;
+  width: 700px;
+  height: 361px;
   top: ${(p) => p.top};
-  left: ${(p) => p.left};
+  /* left: 0px; */
   border-radius: 10px;
   background-color: #ffffff;
   filter: drop-shadow(0px 0px 10px rgba(0, 0, 0, 0.25));
@@ -63,55 +58,26 @@ const StyledTimeInput = styled.input`
 `;
 
 interface PropTypes {
-  todo: UpdateTodo;
-  modalType: 'UPDATE' | 'CREATE';
+  createTodo: CreateTodo;
   modalTop: string;
-  modalLeft: string;
   categories?: Category[];
   isDatePickerModalOpen: boolean;
-  onCloseModal: (options?: { isAll: boolean }) => void;
-  setUpdateTodo: (value: React.SetStateAction<UpdateTodo>) => void;
+  onCloseModal: () => void;
+  setCreateTodo: (value: React.SetStateAction<CreateTodo>) => void;
   setIsDatePickerModalOpen: (v: boolean) => void;
-  submitUpdateTodo: () => void;
-  deleteTodoMutation: (
-    value:
-      | MutationFunctionOptions<{
-          deleteTodoMutation: DeleteTodoMutationInput;
-        }>
-      | undefined,
-  ) => void;
+  submitCreateTodo: () => void;
 }
 
-export const TodoModal = ({
-  todo,
-  modalType,
+export const HeaderTodoDetailModal = ({
+  createTodo,
   modalTop,
-  modalLeft,
   categories = [],
   isDatePickerModalOpen = false,
   onCloseModal,
-  setUpdateTodo,
+  setCreateTodo,
   setIsDatePickerModalOpen,
-  submitUpdateTodo,
-  deleteTodoMutation,
+  submitCreateTodo,
 }: PropTypes): JSX.Element => {
-  const modalRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(event: { target: any }) {
-      // 현재 document에서 mousedown 이벤트가 동작하면 호출되는 함수입니다.
-      if (modalRef.current && !modalRef.current.contains(event.target)) {
-        onCloseModal();
-      }
-    }
-
-    // 현재 document에 이벤트리스너를 추가합니다.
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [modalRef]);
-
   const [tempStartDate, setTempStartDate] = useState<{
     hours: number | undefined;
     minutes: number | undefined;
@@ -137,7 +103,7 @@ export const TodoModal = ({
 
   // 시간 설정 여부
   const [isTimeSetting, setIsTimeSetting] = useState<boolean>(
-    todo.TodoPeriod?.isTime ? todo.TodoPeriod.isTime : false,
+    createTodo.TodoPeriod?.isTime ? createTodo.TodoPeriod.isTime : false,
   );
 
   // 시작시간 OR 종료시간
@@ -160,8 +126,8 @@ export const TodoModal = ({
     minutes: now.getMinutes(),
   };
 
-  if (todo.TodoPeriod?.startedAt) {
-    const startedAt = new Date(todo.TodoPeriod?.startedAt);
+  if (createTodo.TodoPeriod?.startedAt) {
+    const startedAt = new Date(createTodo.TodoPeriod?.startedAt);
     startDate.year = startedAt.getFullYear();
     startDate.month = startedAt.getMonth();
     startDate.date = startedAt.getDate();
@@ -169,8 +135,8 @@ export const TodoModal = ({
     startDate.minutes = startedAt.getMinutes();
   }
 
-  if (todo.TodoPeriod?.endedAt) {
-    const endedAt = new Date(todo.TodoPeriod?.endedAt);
+  if (createTodo.TodoPeriod?.endedAt) {
+    const endedAt = new Date(createTodo.TodoPeriod?.endedAt);
     endDate.year = endedAt.getFullYear();
     endDate.month = endedAt.getMonth();
     endDate.date = endedAt.getDate();
@@ -222,10 +188,9 @@ export const TodoModal = ({
           checkedEndDate.month,
           checkedEndDate.date,
         );
-    setUpdateTodo({
-      ...todo,
+    setCreateTodo({
+      ...createTodo,
       TodoPeriod: {
-        ...todo.TodoPeriod,
         isTime: isTimeSetting,
         startedAt,
         endedAt,
@@ -236,64 +201,127 @@ export const TodoModal = ({
     checkedEndDate,
     setCheckedStartDate,
     setCheckedEndDate,
+    isTimeSetting,
+    setIsTimeSetting,
   ]);
 
+  const headerTodoDetailModalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: { target: any }) {
+      // 현재 document에서 mousedown 이벤트가 동작하면 호출되는 함수입니다.
+      if (
+        headerTodoDetailModalRef.current &&
+        !headerTodoDetailModalRef.current.contains(event.target)
+      ) {
+        setCreateTodo({
+          contents: '',
+          Category: undefined,
+          TodoPeriod: undefined,
+        });
+        onCloseModal();
+      }
+    }
+
+    // 현재 document에 이벤트리스너를 추가합니다.
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [headerTodoDetailModalRef]);
+
   const onLeftButtonClick = () => {
-    deleteTodoMutation({ variables: { todoId: Number(todo.id) } });
-    onCloseModal({ isAll: true });
+    setCreateTodo({
+      contents: '',
+      Category: undefined,
+      TodoPeriod: undefined,
+    });
+    onCloseModal();
   };
 
   const onRightButtonClick = () => {
-    submitUpdateTodo();
-    onCloseModal({ isAll: true });
+    submitCreateTodo();
+    onCloseModal();
   };
 
   return (
-    <StyledTodoModalWrapper top={modalTop} left={modalLeft} ref={modalRef}>
-      <span
-        style={{
-          display: 'flex',
-          width: '95%',
-          fontSize: 20,
-          marginTop: 20,
-          marginLeft: 20,
-        }}
-      >
-        {modalType === 'CREATE' ? '새로운 할 일 만들기' : '할 일 수정하기'}
-      </span>
+    <StyledTodoModalWrapper top={modalTop} ref={headerTodoDetailModalRef}>
       <div
         style={{
           display: 'flex',
-          justifyContent: 'center',
+          justifyContent: 'space-between',
           alignItems: 'center',
-          width: '90%',
-          height: 50,
-          marginTop: 15,
-          border: '0.5px solid #AFAFAF',
-          boxSizing: 'border-box',
-          borderRadius: 20,
-          backgroundColor: '#ffffff',
+          width: '95%',
+          height: '10%',
+          position: 'absolute',
+          marginTop: 10,
         }}
       >
         <input
           style={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            width: '90%',
+            width: 258,
+            height: '100%',
             border: 0,
-            fontSize: 20,
+            fontSize: 18,
             outline: 0,
           }}
-          value={todo.contents}
+          name="contents"
+          placeholder="내가 해야될 일은?"
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            const { value } = e.target;
-            setUpdateTodo({
-              ...todo,
-              contents: value,
-            });
+            const { name, value } = e.target;
+            setCreateTodo({ ...createTodo, [name]: value });
           }}
+          onKeyPress={(e: React.KeyboardEvent<HTMLInputElement>) => {
+            if (e.key === 'Enter') {
+              // submitCreateTodo();
+            }
+          }}
+          value={createTodo.contents}
         />
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            height: '100%',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <button
+            style={{
+              border: 0,
+              outline: 0,
+              backgroundColor: '#00000000',
+              cursor: 'pointer',
+            }}
+            type="button"
+            // onClick={submitCreateTodo}
+          >
+            <img
+              style={{ width: 28, height: 28 }}
+              src={CheckButtonPurpleImg}
+              alt="체크버튼"
+            />
+          </button>
+          <button
+            style={{
+              border: 0,
+              outline: 0,
+              backgroundColor: '#00000000',
+              cursor: 'pointer',
+            }}
+            type="button"
+            onClick={() => {
+              // setIsDetailModalOpen(!isDetailModalOpen);
+            }}
+          >
+            <img
+              style={{ width: 28, height: 28 }}
+              src={CheckedCalendarButtonImg}
+              alt="달력버튼"
+            />
+          </button>
+        </div>
       </div>
       <div
         style={{
@@ -302,7 +330,7 @@ export const TodoModal = ({
           alignItems: 'center',
           width: '90%',
           height: 50,
-          marginTop: 15,
+          marginTop: 68,
           border: isCategorySettingMenuOpen ? undefined : '0.5px solid #AFAFAF',
           boxSizing: 'border-box',
           borderRadius: isCategorySettingMenuOpen ? undefined : 20,
@@ -345,18 +373,18 @@ export const TodoModal = ({
               width={20}
               height={20}
               borderRadius={100}
-              backgroundColor={todo.Category?.color || '#ffffff'}
+              backgroundColor={createTodo.Category?.color || '#ffffff'}
               style={{ border: '1px solid #d6c2ff' }}
             />
             <span
               style={{
                 marginLeft: 10,
                 fontSize: 18,
-                color: todo.Category?.color || '#D4D4D4',
+                color: createTodo.Category?.color || '#D4D4D4',
                 fontFamily: 'Spoqa Han Sans Neo',
               }}
             >
-              {todo.Category?.name ?? '카테고리 미정'}
+              {createTodo.Category?.name ?? '카테고리 미정'}
             </span>
           </button>
         </div>
@@ -365,12 +393,13 @@ export const TodoModal = ({
         <CategorySelectMenu
           categories={categories}
           setTodo={(value: Category) => {
-            setUpdateTodo({
-              ...todo,
+            setCreateTodo({
+              ...createTodo,
               Category: value,
             });
           }}
-          todo={todo}
+          todo={createTodo}
+          isHeaderModal
           onCloseMenu={() => {
             setIsCategorySettingMenuOpen(false);
           }}
@@ -438,7 +467,7 @@ export const TodoModal = ({
           <div
             style={{
               display: 'flex',
-              width: '55%',
+              width: '30%',
               flexDirection: 'row',
               justifyContent: 'space-between',
               alignItems: 'center',
@@ -566,7 +595,7 @@ export const TodoModal = ({
           <div
             style={{
               display: 'flex',
-              width: '55%',
+              width: '30%',
               flexDirection: 'row',
               justifyContent: 'space-between',
               alignItems: 'center',
@@ -716,7 +745,7 @@ export const TodoModal = ({
           }}
           onClick={onLeftButtonClick}
         >
-          {modalType === 'CREATE' ? '취소하기' : '삭제하기'}
+          취소하기
         </button>
         <button
           type="button"
@@ -732,7 +761,7 @@ export const TodoModal = ({
           }}
           onClick={onRightButtonClick}
         >
-          {modalType === 'CREATE' ? '만들기' : '완료'}
+          만들기
         </button>
       </div>
     </StyledTodoModalWrapper>

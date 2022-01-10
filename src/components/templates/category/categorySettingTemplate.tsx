@@ -4,11 +4,10 @@ import styled from 'styled-components';
 import { useMutation } from '@apollo/client';
 import { Category, CreateCategory } from '../../../types';
 import { CategoryCard } from '../../molecules';
-import { useTiryTheme } from '../../../styles/theme';
+import { useTheme } from '../../../styles/theme';
 import CheckButtonImg from '../../../assets/img/checkButton.png';
 import { CREATE_CATEGORY, DELETE_CATEGORY } from '../../../graphQL/mutations';
-import { LoadingPage } from '../../pages';
-import { consoleLog } from '../../../utils';
+import { LoadingTemplate } from '..';
 
 const StyledCategorySettingTemplate = styled.div`
   display: flex;
@@ -107,7 +106,7 @@ export const CategorySettingTemplate = ({
   categories,
   getCategoriesRefetch,
 }: PropTypes) => {
-  const theme = useTiryTheme();
+  const theme = useTheme();
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -142,7 +141,6 @@ export const CategorySettingTemplate = ({
     });
 
   const onClickCreateCategory = () => {
-    consoleLog({ ...createCategory });
     if (
       createCategory.name.length > 0 &&
       createCategory.color !== theme.colors.white
@@ -160,7 +158,7 @@ export const CategorySettingTemplate = ({
   };
 
   if (loadingCreateCategory || loadingDeleteCategory) {
-    return <LoadingPage />;
+    return <LoadingTemplate />;
   }
 
   return (

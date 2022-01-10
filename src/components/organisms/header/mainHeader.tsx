@@ -1,9 +1,10 @@
 import styled from 'styled-components';
 
+import { useCallback, useEffect, useRef, useState } from 'react';
 import CheckButtonImg from '../../../assets/img/checkButton.png';
 import CalendarButtonImg from '../../../assets/img/calendarButton.png';
-import { CreateTodo } from '../../../types';
-import { consoleLog } from '../../../utils';
+import { Category, CreateTodo } from '../../../types';
+import { HeaderTodoDetailModal } from '../modal';
 
 const StyledMainHeaderWrapper = styled.div`
   display: flex;
@@ -13,14 +14,14 @@ const StyledMainHeaderWrapper = styled.div`
   justify-content: space-between;
 `;
 
-const StyledCreateTodoInputWrapper = styled.div`
+const StyledCreateTodoInputWrapper = styled.div<{ isDetailModalOpen: boolean }>`
   width: 700px;
   height: 50px;
   display: flex;
   align-items: center;
   justify-content: start;
-  background: #ffffff;
-  border: 0.5px solid #afafaf;
+  background: ${(p) => (p.isDetailModalOpen ? null : '#ffffff')};
+  border: ${(p) => (p.isDetailModalOpen ? null : '0.5px solid #afafaf')};
   box-sizing: border-box;
   border-radius: 100px;
   padding: 13px 0px 12px 20px;
@@ -38,6 +39,7 @@ const StyledInput = styled.input`
 
 interface PropTypes {
   createTodo: CreateTodo;
+  categories: Category[];
   SettingButtonImg: string;
   setCreateTodo: (value: React.SetStateAction<CreateTodo>) => void;
   submitCreateTodo: (
@@ -47,13 +49,32 @@ interface PropTypes {
 
 export const MainHeader = ({
   createTodo,
+  categories,
   SettingButtonImg = '../../../assets/img/settingButton.png',
   setCreateTodo = () => {},
   submitCreateTodo = () => {},
 }: PropTypes): JSX.Element => {
+  const MainHeaderRef = useRef<HTMLDivElement>(null);
+
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState<boolean>(false);
+
+  const [isDatePickerModalOpen, setIsDatePickerModalOpen] = useState(false);
+
+  const todoInputRef = useRef<HTMLDivElement>(null);
+
+  const [modalTop, setModalTop] = useState<number>(0);
+
+  const getThisRect = useCallback((): DOMRect | undefined => {
+    if (!todoInputRef.current) return undefined;
+    return todoInputRef.current.getBoundingClientRect();
+  }, [todoInputRef]);
+
   return (
-    <StyledMainHeaderWrapper>
-      <StyledCreateTodoInputWrapper>
+    <StyledMainHeaderWrapper ref={MainHeaderRef}>
+      <StyledCreateTodoInputWrapper
+        isDetailModalOpen={isDetailModalOpen}
+        ref={todoInputRef}
+      >
         <StyledInput
           name="contents"
           placeholder="내가 해야될 일은?"
@@ -68,6 +89,7 @@ export const MainHeader = ({
           }}
           value={createTodo.contents}
         />
+
         <button
           style={{
             border: 0,
@@ -93,7 +115,11 @@ export const MainHeader = ({
           }}
           type="button"
           onClick={() => {
-            consoleLog('calendar');
+            const rect = getThisRect();
+            if (rect) {
+              setModalTop(rect.top);
+            }
+            setIsDetailModalOpen(!isDetailModalOpen);
           }}
         >
           <img
@@ -103,6 +129,21 @@ export const MainHeader = ({
           />
         </button>
       </StyledCreateTodoInputWrapper>
+      {isDetailModalOpen ? (
+        <HeaderTodoDetailModal
+          createTodo={createTodo}
+          modalTop={`${modalTop}px`}
+          categories={categories}
+          isDatePickerModalOpen={isDatePickerModalOpen}
+          onCloseModal={() => {
+            setIsDetailModalOpen(false);
+            setIsDatePickerModalOpen(false);
+          }}
+          setCreateTodo={setCreateTodo}
+          setIsDatePickerModalOpen={setIsDatePickerModalOpen}
+          submitCreateTodo={submitCreateTodo}
+        />
+      ) : null}
       <button
         style={{
           border: 0,
@@ -112,9 +153,7 @@ export const MainHeader = ({
           marginRight: 20,
         }}
         type="button"
-        onClick={() => {
-          consoleLog('profile setting');
-        }}
+        onClick={() => {}}
       >
         <img
           style={{ width: 40, height: 40 }}

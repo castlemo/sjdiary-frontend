@@ -1,7 +1,4 @@
-export * from './signin/signinPage';
-// eslint-disable-next-line import/no-cycle
-export * from './signup/signupPage';
-export * from './loading/loadingPage';
-export * from './notFoundPage/notFoundPage';
-// eslint-disable-next-line import/no-cycle
-export * from './main/mainPage';
+export * from './signinPage';
+export * from '../../archived/signupPage';
+export * from './notFoundPage';
+export * from '../../archived/mainPage';

@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import { Auth0Error, Auth0UserProfile, WebAuth } from 'auth0-js';
-import { History } from 'history';
 import {
   createContext,
   useCallback,
@@ -9,36 +8,18 @@ import {
   useMemo,
   useState,
 } from 'react';
-import { consoleLog } from '../utils';
+import { AUTH0_AUDIENCE, AUTH0_CLIENT_ID, AUTH0_DOMAIN } from '../config';
+import { ROUTES } from '../constant';
+import { useCheckAuthLocalStorage } from '../utils/hooks';
 
-export const useShouldCheckAuthLocalStorage = () => {
-  const LOCAL_STORAGE_KEY = 'shouldCheckAuth';
-  const localStorageValues = {
-    true: 'true',
-    false: 'false',
-  } as const;
-
-  const shouldCheckAuth =
-    localStorage.getItem(LOCAL_STORAGE_KEY) === localStorageValues.true;
-
-  const setShouldCheckAuth = (value: boolean) => {
-    localStorage.setItem(
-      LOCAL_STORAGE_KEY,
-      value ? localStorageValues.true : localStorageValues.false,
-    );
-  };
-
-  return { shouldCheckAuth, setShouldCheckAuth };
-};
-
-export interface Auth0ContextInterface {
+export interface IAuth0Context {
   user?: Auth0UserProfile;
   isAuthenticated: boolean;
   isLoading: boolean;
-  signIn: () => void;
+  signIn: (o: SignInOptions) => void;
   signOut: () => void;
   getToken: () => Promise<string | undefined>;
-  getUserProfile: () => Promise<Auth0UserProfile | undefined>;
+  getAuth0UserProfile: () => Promise<Auth0UserProfile | undefined>;
 }
 
 interface AnyObject {
@@ -51,27 +32,29 @@ interface SessionData {
   profile?: AnyObject;
 }
 
-const Auth0Context = createContext<Auth0ContextInterface>({
+export interface SignInOptions {
+  type: 'google' | 'apple';
+}
+
+const Auth0Context = createContext<IAuth0Context>({
   user: undefined,
   isAuthenticated: false,
   isLoading: true,
   signIn: (): Promise<any> => Promise.resolve(),
   signOut: () => {},
   getToken: (): Promise<any> => Promise.resolve(),
-  getUserProfile: (): Promise<any> => Promise.resolve(),
+  getAuth0UserProfile: (): Promise<any> => Promise.resolve(),
 });
 Auth0Context.displayName = 'Auth0Context';
 const Auth0Provider = Auth0Context.Provider;
 
 const AUTH_SCOPE = 'openid profile email';
 
-export const useAuth0 = (): Auth0ContextInterface => useContext(Auth0Context);
+export const useAuth0 = (): IAuth0Context => useContext(Auth0Context);
 
 export const Auth0Wrapper = ({
-  history,
   children,
 }: {
-  history: History;
   children: JSX.Element | undefined;
 }): JSX.Element => {
   const [auth0Client, setAuth0Client] = useState<WebAuth | undefined>(
@@ -81,9 +64,8 @@ export const Auth0Wrapper = ({
     undefined,
   );
 
-  const { shouldCheckAuth, setShouldCheckAuth } =
-    useShouldCheckAuthLocalStorage();
-  const [isLoading, setIsLoading] = useState<boolean>(shouldCheckAuth);
+  const { checkAuth, setCheckAuth } = useCheckAuthLocalStorage();
+  const [isLoading, setIsLoading] = useState<boolean>(checkAuth);
 
   const isAuthenticated = useMemo((): boolean => {
     if (auth0UserData?.profile !== undefined) {
@@ -92,32 +74,44 @@ export const Auth0Wrapper = ({
     return false;
   }, [auth0UserData]);
 
-  const signIn = () => {
+  const signIn = ({ type = 'google' }: SignInOptions) => {
     if (auth0Client) {
       try {
-        setShouldCheckAuth(true);
-        auth0Client?.authorize({
-          connection: 'google-oauth2',
-        });
+        setCheckAuth(true);
+
+        if (type === 'apple') {
+          auth0Client.authorize({
+            connection: 'apple',
+          });
+          return;
+        }
+
+        if (type === 'google') {
+          auth0Client.authorize({
+            connection: 'google-oauth2',
+          });
+          return;
+        }
       } catch (err) {
         console.error('Auth0Wrapper: SignIn error');
         console.error(err);
-        setShouldCheckAuth(false);
+        alert('로그인 에러 발생');
+        setCheckAuth(false);
       }
     }
   };
 
   const signOut = (): boolean => {
-    history.push('/');
     if (auth0Client) {
-      setShouldCheckAuth(false);
       auth0Client.logout({
-        returnTo: `${window.location.origin}`,
-        clientID: 'tiXYMoALWqPfcNOd6ZJ0b86auQqytkJo',
+        returnTo: `${window.location.origin}${ROUTES.SIGNIN}`,
+        clientID: AUTH0_CLIENT_ID,
       });
+      setCheckAuth(false);
       return true;
     }
-    consoleLog('auth0Client is not set');
+    console.log('auth0Client is not set');
+    alert('로그인 에러 발생');
     return false;
   };
 
@@ -132,7 +126,7 @@ export const Auth0Wrapper = ({
       const { err, result } = await new Promise((resolve) => {
         auth0Client.checkSession(
           {
-            audience: 'https://user.tiry',
+            audience: AUTH0_AUDIENCE,
             scope: AUTH_SCOPE,
           },
           (
@@ -176,41 +170,46 @@ export const Auth0Wrapper = ({
 
       if (tokenExists && !tokenExpired) {
         // * if token exists and not expired yet, return token
-        consoleLog('getToken: returning existing token');
+        console.log('getToken: returning existing token');
         return auth0UserData.accessToken;
       }
       // * if token already expired, call fetchToken and return the result
-      consoleLog('getToken: fetching new token');
+      console.log('getToken: fetching new token');
 
       const { result } = await fetchToken();
       setAuth0UserData({
         ...result,
+        profile: result?.profile,
       });
 
       return result?.accessToken;
     }
 
-    consoleLog('auth0Client is not set');
+    console.log('auth0Client is not set');
     return undefined;
   }, [auth0UserData, auth0Client, fetchToken]);
 
-  interface Auth0UserInfoResult {
+  interface IAuth0UserInfoResult {
     profile: Auth0UserProfile | undefined;
     error: Auth0Error | null;
   }
 
   const fetchUserProfile = useCallback(
-    async (accessToken: string): Promise<Auth0UserInfoResult> => {
+    async (accessToken: string): Promise<IAuth0UserInfoResult> => {
       if (auth0Client) {
-        return new Promise<Auth0UserInfoResult>((resolve) => {
-          auth0Client.client.userInfo(accessToken, (error, profile) => {
-            resolve({ profile, error });
-          });
-        });
+        const { profile, error } = await new Promise<IAuth0UserInfoResult>(
+          (resolve) => {
+            auth0Client.client.userInfo(accessToken, (_error, _profile) => {
+              resolve({ profile: _profile, error: _error });
+            });
+          },
+        );
+
+        return { profile, error };
       }
 
-      consoleLog('fetchUserProfile: auth0Client is not set, too bad :(');
-      return { profile: undefined, error: { error: 'auth0Client' } };
+      console.log('fetchUserProfile: auth0Client is not set, too bad :(');
+      return { profile: undefined, error: { error: 'auth0Client is not set' } };
     },
     [auth0Client],
   );
@@ -227,39 +226,40 @@ export const Auth0Wrapper = ({
       return profile;
     }
 
-    consoleLog('auth0UserData is not set');
+    console.log('auth0UserData is not set');
     return undefined;
   }, [auth0UserData, fetchUserProfile]);
 
   useEffect(() => {
     const webAuth = new WebAuth({
-      domain: 'tiry.us.auth0.com',
-      clientID: 'tiXYMoALWqPfcNOd6ZJ0b86auQqytkJo',
-      audience: 'https://user.tiry',
+      domain: AUTH0_DOMAIN,
+      clientID: AUTH0_CLIENT_ID,
+      audience: AUTH0_AUDIENCE,
       redirectUri: window.location.origin,
       responseType: 'code token id_token',
       scope: AUTH_SCOPE,
     });
     setAuth0Client(webAuth);
 
-    if (!shouldCheckAuth) {
+    if (!checkAuth) {
       return;
     }
 
     setIsLoading(true);
+
     // call checkSession() to get if logged in
     webAuth.checkSession(
       {
-        audience: 'https://user.tiry',
+        audience: AUTH0_AUDIENCE,
         scope: AUTH_SCOPE,
       },
       (err: unknown, result?: SessionData & { idTokenPayload?: AnyObject }) => {
         if (err) {
           console.error(err);
         }
-        consoleLog('============accessToken============');
-        consoleLog(result?.accessToken);
-        consoleLog('============accessToken============');
+        console.log('============accessToken============');
+        console.log(result?.accessToken);
+        console.log('============accessToken============');
         if (result !== undefined) {
           setAuth0UserData({
             accessToken: result?.accessToken,
@@ -270,18 +270,22 @@ export const Auth0Wrapper = ({
         setIsLoading(false);
       },
     );
-  }, [shouldCheckAuth]);
+  }, [checkAuth]);
 
   // call refreshToken every 600 sec
   useEffect(() => {
     let tokenTimer: undefined | NodeJS.Timeout;
+
     const refreshToken = () => {
       getToken();
       tokenTimer = setTimeout(() => {
         refreshToken();
+        // time config 분리
       }, 600000);
     };
+
     refreshToken();
+
     return () => {
       if (tokenTimer !== undefined) {
         clearTimeout(tokenTimer);
@@ -298,7 +302,7 @@ export const Auth0Wrapper = ({
         signIn,
         signOut,
         getToken,
-        getUserProfile: getAuth0UserProfile,
+        getAuth0UserProfile,
       }}
     >
       {children}

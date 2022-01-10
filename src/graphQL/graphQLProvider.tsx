@@ -5,9 +5,10 @@ import {
   InMemoryCache,
 } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
+import { useEffect } from 'react';
 
 import { useAuth0 } from '../auth0/auth0Wrapper';
-import { API_URL } from '../constant';
+import { SERVER_API_URL } from '../config';
 
 export const GraphQLProvider = ({
   children,
@@ -17,7 +18,7 @@ export const GraphQLProvider = ({
 }): JSX.Element => {
   const { getToken, isAuthenticated } = useAuth0();
 
-  const httpLink = new HttpLink({ uri: API_URL });
+  const httpLink = new HttpLink({ uri: SERVER_API_URL });
 
   /* istanbul ignore next */
   const authLink = setContext(async () => {
@@ -29,7 +30,6 @@ export const GraphQLProvider = ({
         },
       };
     }
-
     return {
       headers: {
         authorization: 'Bearer ',
@@ -40,6 +40,14 @@ export const GraphQLProvider = ({
   const apolloClient = new ApolloClient({
     link: authLink.concat(httpLink),
     cache: new InMemoryCache(),
+    name: `web-${process.env.REACT_APP_MODE}`,
+  });
+
+  useEffect(() => {
+    // * remove all cache on user signout
+    if (isAuthenticated === false) {
+      apolloClient.clearStore();
+    }
   });
 
   return <ApolloProvider client={apolloClient}>{children}</ApolloProvider>;
