@@ -10,7 +10,7 @@ export const GlobalStyle = createGlobalStyle`
     padding: 0 0 0 0;
     font-family: KOTRAHOPE;
     
-    background-color: ${({ theme }) => theme.colors.black2};
+    background-color: ${({ theme }) => theme.colors.black1};
 
     @font-face {
       font-family: KOTRAHOPE;

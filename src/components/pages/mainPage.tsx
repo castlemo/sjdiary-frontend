@@ -36,6 +36,7 @@ export const MainPage = (): JSX.Element => {
     <MainTemplate
       dataMe={dataMe?.me}
       today={today}
+      setToday={setToday}
       onClickUpdateToday={onClickUpdateToday}
     />
   );

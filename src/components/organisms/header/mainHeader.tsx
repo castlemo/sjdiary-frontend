@@ -33,12 +33,14 @@ const StyledRightHeader = styled.div`
 interface PropTypes {
   dataMe?: MeOutput;
   today: Date;
+  setToday: React.Dispatch<React.SetStateAction<Date>>;
   onClickUpdateToday: (type: 'left' | 'right') => void;
 }
 
 export const MainHeader = ({
   dataMe,
   today,
+  setToday = () => {},
   onClickUpdateToday = () => {},
 }: PropTypes): JSX.Element => {
   const theme = useTheme();
@@ -62,6 +64,10 @@ export const MainHeader = ({
           style={{
             fontSize: 30,
             color: theme.colors.white1,
+            cursor: 'pointer',
+          }}
+          onDoubleClick={() => {
+            setToday(new Date());
           }}
         >
           {month}월 {week}째주
