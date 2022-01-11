@@ -20,24 +20,5 @@ export const MainPage = (): JSX.Element => {
     return <LoadingTemplate />;
   }
 
-  const onClickUpdateToday = (type: 'left' | 'right'): void => {
-    const date = today.getDate();
-    const newDate = new Date(today);
-    if (type === 'left') {
-      newDate.setDate(date - 7);
-    } else {
-      newDate.setDate(date + 7);
-    }
-
-    setToday(newDate);
-  };
-
-  return (
-    <MainTemplate
-      dataMe={dataMe?.me}
-      today={today}
-      setToday={setToday}
-      onClickUpdateToday={onClickUpdateToday}
-    />
-  );
+  return <MainTemplate dataMe={dataMe?.me} today={today} setToday={setToday} />;
 };

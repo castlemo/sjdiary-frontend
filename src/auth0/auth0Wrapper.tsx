@@ -10,9 +10,9 @@ import {
 } from 'react';
 import { AUTH0_AUDIENCE, AUTH0_CLIENT_ID, AUTH0_DOMAIN } from '../config';
 import { ROUTES } from '../constant';
-import { useCheckAuthLocalStorage } from '../utils/hooks';
+import { useCheckAuthLocalStorage } from '../hooks';
 
-export interface IAuth0Context {
+export type Auth0Context = {
   user?: Auth0UserProfile;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -20,37 +20,38 @@ export interface IAuth0Context {
   signOut: () => void;
   getToken: () => Promise<string | undefined>;
   getAuth0UserProfile: () => Promise<Auth0UserProfile | undefined>;
-}
+};
 
-interface AnyObject {
+type AnyObject = {
   [k: string]: string | number | boolean | AnyObject;
-}
+};
 
-interface SessionData {
+type SessionData = {
   accessToken?: string;
   expiresIn?: number;
   profile?: AnyObject;
-}
+};
 
-export interface SignInOptions {
+export type SignInOptions = {
   type: 'google' | 'apple';
-}
+};
 
-const Auth0Context = createContext<IAuth0Context>({
+const auth0Context = createContext<Auth0Context>({
   user: undefined,
   isAuthenticated: false,
   isLoading: true,
-  signIn: (): Promise<any> => Promise.resolve(),
+  signIn: (): Promise<void> => Promise.resolve(),
   signOut: () => {},
-  getToken: (): Promise<any> => Promise.resolve(),
-  getAuth0UserProfile: (): Promise<any> => Promise.resolve(),
+  getToken: (): Promise<string | undefined> => Promise.resolve(undefined),
+  getAuth0UserProfile: (): Promise<Auth0UserProfile | undefined> =>
+    Promise.resolve(undefined),
 });
-Auth0Context.displayName = 'Auth0Context';
-const Auth0Provider = Auth0Context.Provider;
+auth0Context.displayName = 'Auth0Context';
+const Auth0Provider = auth0Context.Provider;
 
 const AUTH_SCOPE = 'openid profile email';
 
-export const useAuth0 = (): IAuth0Context => useContext(Auth0Context);
+export const useAuth0 = (): Auth0Context => useContext(auth0Context);
 
 export const Auth0Wrapper = ({
   children,

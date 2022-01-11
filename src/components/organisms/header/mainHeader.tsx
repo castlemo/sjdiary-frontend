@@ -34,19 +34,29 @@ interface PropTypes {
   dataMe?: MeOutput;
   today: Date;
   setToday: React.Dispatch<React.SetStateAction<Date>>;
-  onClickUpdateToday: (type: 'left' | 'right') => void;
 }
 
 export const MainHeader = ({
   dataMe,
   today,
   setToday = () => {},
-  onClickUpdateToday = () => {},
 }: PropTypes): JSX.Element => {
   const theme = useTheme();
 
   const month = today.getMonth() + 1;
   const week = getWeek(today);
+
+  const onClickUpdateToday = (type: 'left' | 'right') => {
+    const date = today.getDate();
+    const newDate = new Date(today);
+    if (type === 'left') {
+      newDate.setDate(date - 7);
+    } else {
+      newDate.setDate(date + 7);
+    }
+
+    setToday(newDate);
+  };
 
   return (
     <StyledHeaderWrapper>
