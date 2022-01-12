@@ -9,6 +9,7 @@ import { ROUTES } from './constant';
 import { CREATE_USER } from './graphQL/mutations';
 import { VERIFY_USER } from './graphQL/queries';
 import { ICreateUserInput } from './graphQL/types';
+import { Test } from './test';
 
 export const MainRouter = (): JSX.Element => {
   const {
@@ -88,6 +89,9 @@ export const MainRouter = (): JSX.Element => {
         path={ROUTES.SIGNIN}
         element={isMember ? <Navigate to={ROUTES.MAIN} /> : <SigninPage />}
       />
+
+      {/* Test */}
+      <Route path="/test" element={<Test />} />
 
       {/* Not Found */}
       <Route path="*" element={<NotFoundPage />} />

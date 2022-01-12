@@ -6,8 +6,8 @@ export const GlobalStyle = createGlobalStyle`
   body {
     width: 100%;
     height: 100vh;
-    margin: 0 0 0 0;
-    padding: 0 0 0 0;
+    margin: 0;
+    padding: 0;
     font-family: KOTRAHOPE;
     
     background-color: ${({ theme }) => theme.colors.black1};

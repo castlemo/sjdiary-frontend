@@ -1,10 +1,8 @@
-import { useMemo } from 'react';
-import styled from 'styled-components';
-import { DAYS } from '../../constant';
+import styled, { useTheme } from 'styled-components';
 
 import { MeOutput } from '../../graphQL/types';
 import { MainHeader } from '../organisms';
-import { DiaryCalendar } from '../organisms/calendar';
+import { DiaryHeader } from '../organisms/header';
 
 const StyledMainTemplate = styled.div`
   width: 100%;
@@ -14,6 +12,8 @@ const StyledMainTemplate = styled.div`
   flex-direction: column;
 
   background-color: ${({ theme }) => theme.colors.black2};
+
+  overflow: hidden;
 `;
 
 const StyledBody = styled.div`
@@ -23,36 +23,59 @@ const StyledBody = styled.div`
   flex-direction: column;
 `;
 
-const StyledCalendar = styled.div`
-  width: 100%;
-  height: 8%;
-  min-height: 75px;
-
+const StyledDiaryWrapper = styled.div`
   display: flex;
+  flex: 1;
   flex-direction: row;
 
-  border: 0.5px solid ${({ theme }) => theme.colors.grey3};
-  border-left: 0px;
-  border-right: 0px;
-
-  cursor: pointer;
+  overflow: auto;
 `;
 
-const StyledCalendarItem = styled.div<{ isToday: boolean }>`
+const StyledTimeWrapper = styled.div`
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
+
+  min-width: 70px;
+  height: auto;
+`;
+
+const StyledTimeItem = styled.div`
+  width: 100%;
+  height: 60px;
+  min-height: 60px;
+
+  display: flex;
   justify-content: center;
   align-items: center;
 
-  font-family: Spoqa Han Sans Neo;
+  color: ${({ theme }) => theme.colors.purple1};
 
-  font-size: 16px;
-  color: ${({ theme, isToday }) =>
-    isToday ? theme.colors.purple1 : theme.colors.grey1};
+  background-color: ${({ theme }) => theme.colors.black2};
+
+  overflow: auto;
 `;
 
-const StyledDiaryWrapper = styled.div``;
+const StyledTodoWrapper = styled.div`
+  display: flex;
+  flex: 5;
+  justify-content: center;
+  align-items: center;
+
+  width: 100%;
+  height: auto;
+  background-color: pink;
+`;
+
+const StyledReviewWrapper = styled.div`
+  display: flex;
+  flex: 5;
+  justify-content: center;
+  align-items: center;
+
+  width: 100%;
+  height: auto;
+  background-color: blue;
+`;
 
 interface PropTypes {
   dataMe?: MeOutput;
@@ -65,12 +88,31 @@ export const MainTemplate = ({
   today = new Date(),
   setToday = () => {},
 }: PropTypes): JSX.Element => {
+  const theme = useTheme();
+
   return (
     <StyledMainTemplate>
       <MainHeader dataMe={dataMe} today={today} setToday={setToday} />
       <StyledBody>
-        <DiaryCalendar dataMe={dataMe} today={today} setToday={setToday} />
-        <StyledDiaryWrapper>test</StyledDiaryWrapper>
+        <DiaryHeader dataMe={dataMe} today={today} setToday={setToday} />
+        <StyledDiaryWrapper>
+          <StyledTimeWrapper>
+            <div
+              style={{
+                width: '100%',
+                height: 66,
+                minHeight: 66,
+                border: `0.5px solid ${theme.colors.grey3}`,
+                boxSizing: 'border-box',
+              }}
+            />
+            {[...new Array(24).keys()].map((hour) => (
+              <StyledTimeItem key={hour}>{hour}</StyledTimeItem>
+            ))}
+          </StyledTimeWrapper>
+          <StyledTodoWrapper />
+          <StyledReviewWrapper />
+        </StyledDiaryWrapper>
       </StyledBody>
     </StyledMainTemplate>
   );

@@ -30,6 +30,24 @@ const StyledRightHeader = styled.div`
   margin-right: 40px;
 `;
 
+const StyledTodayButton = styled.button`
+  margin: 3px 0px 0px 10px;
+
+  width: 48px;
+  height: 31px;
+
+  border: 0.5px solid ${({ theme }) => theme.colors.grey3};
+  border-radius: 4px;
+  box-sizing: border-box;
+
+  background-color: ${({ theme }) => theme.colors.black2};
+
+  font-size: 14px;
+  color: ${({ theme }) => theme.colors.grey1};
+
+  cursor: pointer;
+`;
+
 interface PropTypes {
   dataMe?: MeOutput;
   today: Date;
@@ -76,9 +94,6 @@ export const MainHeader = ({
             color: theme.colors.white1,
             cursor: 'pointer',
           }}
-          onDoubleClick={() => {
-            setToday(new Date());
-          }}
         >
           {month}월 {week}째주
         </span>
@@ -91,6 +106,13 @@ export const MainHeader = ({
             onClickUpdateToday('right');
           }}
         />
+        <StyledTodayButton
+          onClick={() => {
+            setToday(new Date());
+          }}
+        >
+          오늘
+        </StyledTodayButton>
       </StyledLeftHeader>
       <StyledRightHeader>
         <span

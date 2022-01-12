@@ -22,9 +22,7 @@ export type Auth0Context = {
   getAuth0UserProfile: () => Promise<Auth0UserProfile | undefined>;
 };
 
-type AnyObject = {
-  [k: string]: string | number | boolean | AnyObject;
-};
+type AnyObject = Record<string, any>;
 
 type SessionData = {
   accessToken?: string;
@@ -46,6 +44,7 @@ const auth0Context = createContext<Auth0Context>({
   getAuth0UserProfile: (): Promise<Auth0UserProfile | undefined> =>
     Promise.resolve(undefined),
 });
+
 auth0Context.displayName = 'Auth0Context';
 const Auth0Provider = auth0Context.Provider;
 

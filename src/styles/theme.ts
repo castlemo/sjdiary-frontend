@@ -3,19 +3,6 @@ import { ThemeContext } from 'styled-components';
 
 export const theme = {
   colors: {
-    // === deprecated ===
-    orange: '#FFC989',
-    green: '#98F090',
-    blue: '#9EE8F9',
-    pink: '#FFC2D5',
-    red: '#F17878',
-    yellow: '#F2F551',
-    mint: '#71E3CF',
-    purple: '#D6C2FF',
-    grey: '#C2C2C2',
-    white: '#FFFFFF',
-    // === deprecated ===
-
     green1: '#58CAB5`',
     green2: '#092E27`',
 

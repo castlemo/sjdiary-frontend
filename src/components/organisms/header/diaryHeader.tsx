@@ -29,6 +29,7 @@ const StyledCalendarItem = styled.div<{ isToday: boolean }>`
   font-family: Spoqa Han Sans Neo;
 
   font-size: 16px;
+  font-weight: ${({ isToday }) => (isToday ? 'bold' : null)};
   color: ${({ theme, isToday }) =>
     isToday ? theme.colors.purple1 : theme.colors.grey1};
 `;
@@ -39,7 +40,7 @@ type PropTypes = {
   setToday: React.Dispatch<React.SetStateAction<Date>>;
 };
 
-export const DiaryCalendar = ({
+export const DiaryHeader = ({
   dataMe,
   today = new Date(),
   setToday = () => {},
