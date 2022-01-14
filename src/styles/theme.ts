@@ -20,17 +20,10 @@ export const theme = {
 
     white1: '#FFFFFF',
   },
-  categoryColorList: [
-    '#FFFFFF',
-    '#F17878',
-    '#FFC989',
-    '#F2F551',
-    '#98F090',
-    '#9EE8F9',
-    '#71E3CF',
-    '#D6C2FF',
-    '#FFC2D5',
-  ],
+  fonts: {
+    spoqaHanSansNeo: 'Spoqa Han Sans Neo',
+    kotraHope: 'KOTRAHOPE',
+  },
 };
 
 export type Theme = typeof theme;

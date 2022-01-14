@@ -7,3 +7,13 @@ export type MeOutput = {
   profileImageUrl: string;
   updatedAt: number;
 };
+
+export type TodoOutput = {
+  completedAt?: number;
+  contents: string;
+  createdAt: number;
+  finishedAt: number;
+  id: number;
+  startedAt: number;
+  updatedAt: number;
+};

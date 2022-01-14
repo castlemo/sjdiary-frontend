@@ -13,9 +13,9 @@ const StyledSignInWrapper = styled.div`
   align-items: center;
 `;
 
-interface PropTypes {
+type PropTypes = {
   signIn: (o: SignInOptions) => void;
-}
+};
 
 export const SigninTemplate = ({ signIn }: PropTypes): JSX.Element => {
   const theme = useTheme();

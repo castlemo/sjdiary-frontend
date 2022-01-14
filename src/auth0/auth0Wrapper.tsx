@@ -189,10 +189,10 @@ export const Auth0Wrapper = ({
     return undefined;
   }, [auth0UserData, auth0Client, fetchToken]);
 
-  interface IAuth0UserInfoResult {
+  type IAuth0UserInfoResult = {
     profile: Auth0UserProfile | undefined;
     error: Auth0Error | null;
-  }
+  };
 
   const fetchUserProfile = useCallback(
     async (accessToken: string): Promise<IAuth0UserInfoResult> => {

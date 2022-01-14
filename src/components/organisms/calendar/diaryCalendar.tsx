@@ -6,7 +6,6 @@ import { MeOutput } from '../../../graphQL/types';
 
 const StyledCalendar = styled.div`
   width: 100%;
-  height: 8%;
   min-height: 75px;
 
   display: flex;
@@ -40,7 +39,7 @@ type PropTypes = {
   setToday: React.Dispatch<React.SetStateAction<Date>>;
 };
 
-export const DiaryHeader = ({
+export const DiaryCalendar = ({
   dataMe,
   today = new Date(),
   setToday = () => {},
@@ -49,6 +48,9 @@ export const DiaryHeader = ({
     let startOfWeekDate: Date;
 
     const nowDay = today.getDay();
+    const nowHour = today.getHours();
+    const nowMinute = today.getMinutes();
+    const nowSecond = today.getSeconds();
 
     if (nowDay === 0) {
       startOfWeekDate = new Date(
@@ -70,6 +72,9 @@ export const DiaryHeader = ({
           startOfWeekDate.getFullYear(),
           startOfWeekDate.getMonth(),
           startOfWeekDate.getDate() + num,
+          nowHour,
+          nowMinute,
+          nowSecond,
         ),
     );
   }, [today]);

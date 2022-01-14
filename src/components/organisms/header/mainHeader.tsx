@@ -48,11 +48,11 @@ const StyledTodayButton = styled.button`
   cursor: pointer;
 `;
 
-interface PropTypes {
+type PropTypes = {
   dataMe?: MeOutput;
   today: Date;
   setToday: React.Dispatch<React.SetStateAction<Date>>;
-}
+};
 
 export const MainHeader = ({
   dataMe,

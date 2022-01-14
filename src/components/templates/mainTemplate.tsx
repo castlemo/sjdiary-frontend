@@ -1,45 +1,48 @@
+import { useState } from 'react';
 import styled, { useTheme } from 'styled-components';
 
 import { MeOutput } from '../../graphQL/types';
-import { MainHeader } from '../organisms';
-import { DiaryHeader } from '../organisms/header';
+import { DiaryCreateCard, MainHeader } from '../organisms';
+import { DiaryCalendar } from '../organisms/calendar';
 
 const StyledMainTemplate = styled.div`
   width: 100%;
-  height: 100vh;
+  height: 100%;
 
   display: flex;
   flex-direction: column;
 
   background-color: ${({ theme }) => theme.colors.black2};
-
-  overflow: hidden;
 `;
 
 const StyledBody = styled.div`
   width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-`;
+  height: auto;
 
-const StyledDiaryWrapper = styled.div`
   display: flex;
   flex: 1;
-  flex-direction: row;
+  flex-direction: column;
+
+  overflow: hidden;
+`;
+
+const StyledDiaryContainer = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
 
   overflow: auto;
 `;
 
-const StyledTimeWrapper = styled.div`
+const StyledTimeContainer = styled.div`
   display: flex;
   flex-direction: column;
 
   min-width: 70px;
-  height: auto;
+  height: 100%;
 `;
 
-const StyledTimeItem = styled.div`
+const StyledTimeItem = styled.div<{ isNowHour: boolean }>`
   width: 100%;
   height: 60px;
   min-height: 60px;
@@ -48,40 +51,75 @@ const StyledTimeItem = styled.div`
   justify-content: center;
   align-items: center;
 
-  color: ${({ theme }) => theme.colors.purple1};
+  color: ${({ theme, isNowHour }) =>
+    isNowHour ? theme.colors.purple1 : theme.colors.grey1};
+  font-family: Spoqa Han Sans Neo;
+  font-size: 14px;
 
   background-color: ${({ theme }) => theme.colors.black2};
+
+  border-right: 0.5px solid ${({ theme }) => theme.colors.grey3};
 
   overflow: auto;
 `;
 
-const StyledTodoWrapper = styled.div`
+const StyledTodoContainer = styled.div`
   display: flex;
-  flex: 5;
-  justify-content: center;
-  align-items: center;
+  flex-direction: column;
+  flex: 1;
 
   width: 100%;
-  height: auto;
-  background-color: pink;
+  height: 100vh;
+
+  /* background-color: pink; */
 `;
 
 const StyledReviewWrapper = styled.div`
   display: flex;
-  flex: 5;
+  flex-direction: column;
+  flex: 1;
+
+  width: 100%;
+  height: 100%;
+
+  /* background-color: blue; */
+`;
+
+const StyledDiaryTitle = styled.div`
+  display: flex;
   justify-content: center;
   align-items: center;
 
   width: 100%;
-  height: auto;
-  background-color: blue;
+  min-height: 66px;
+
+  color: ${({ theme }) => theme.colors.purple1};
+  font-size: 18;
+
+  border: 0.5px solid ${({ theme }) => theme.colors.grey3};
+  box-sizing: border-box;
 `;
 
-interface PropTypes {
+const StyledDiaryCreateCard = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  width: 100%;
+  height: 66px;
+
+  border: 0.5px solid ${({ theme }) => theme.colors.grey3};
+  box-sizing: border-box;
+
+  background-color: ${({ theme }) => theme.colors.black1};
+`;
+
+type PropTypes = {
   dataMe?: MeOutput;
   today: Date;
   setToday: React.Dispatch<React.SetStateAction<Date>>;
-}
+};
 
 export const MainTemplate = ({
   dataMe,
@@ -89,30 +127,42 @@ export const MainTemplate = ({
   setToday = () => {},
 }: PropTypes): JSX.Element => {
   const theme = useTheme();
+  const nowHour = today.getHours();
+
+  const [todoContents, setTodoContents] = useState('');
+  const [reviewContents, setReviewContents] = useState('');
 
   return (
     <StyledMainTemplate>
       <MainHeader dataMe={dataMe} today={today} setToday={setToday} />
       <StyledBody>
-        <DiaryHeader dataMe={dataMe} today={today} setToday={setToday} />
-        <StyledDiaryWrapper>
-          <StyledTimeWrapper>
-            <div
-              style={{
-                width: '100%',
-                height: 66,
-                minHeight: 66,
-                border: `0.5px solid ${theme.colors.grey3}`,
-                boxSizing: 'border-box',
-              }}
-            />
+        <DiaryCalendar dataMe={dataMe} today={today} setToday={setToday} />
+        <StyledDiaryContainer>
+          <StyledTimeContainer>
+            <StyledDiaryTitle />
             {[...new Array(24).keys()].map((hour) => (
-              <StyledTimeItem key={hour}>{hour}</StyledTimeItem>
+              <StyledTimeItem key={hour} isNowHour={nowHour === hour}>
+                {hour}시
+              </StyledTimeItem>
             ))}
-          </StyledTimeWrapper>
-          <StyledTodoWrapper />
-          <StyledReviewWrapper />
-        </StyledDiaryWrapper>
+          </StyledTimeContainer>
+          <StyledTodoContainer>
+            <StyledDiaryTitle>오늘은 이렇게 보내고 싶어요</StyledDiaryTitle>
+            <DiaryCreateCard
+              contents={todoContents}
+              setContents={setTodoContents}
+              inputPlaceHolder="예정된 할일을 입력해주세요."
+            />
+          </StyledTodoContainer>
+          <StyledReviewWrapper>
+            <StyledDiaryTitle>오늘은 이렇게 보냈어요</StyledDiaryTitle>
+            <DiaryCreateCard
+              contents={reviewContents}
+              setContents={setReviewContents}
+              inputPlaceHolder="오늘 했던 일을 입력해주세요."
+            />
+          </StyledReviewWrapper>
+        </StyledDiaryContainer>
       </StyledBody>
     </StyledMainTemplate>
   );

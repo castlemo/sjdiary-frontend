@@ -8,7 +8,7 @@ import { LoadingTemplate } from './components/templates';
 import { ROUTES } from './constant';
 import { CREATE_USER } from './graphQL/mutations';
 import { VERIFY_USER } from './graphQL/queries';
-import { ICreateUserInput } from './graphQL/types';
+import { CreateUserInput } from './graphQL/types';
 import { Test } from './test';
 
 export const MainRouter = (): JSX.Element => {
@@ -18,7 +18,7 @@ export const MainRouter = (): JSX.Element => {
     getAuth0UserProfile,
   } = useAuth0();
 
-  const [requestCreateUser] = useMutation<unknown, ICreateUserInput>(
+  const [requestCreateUser] = useMutation<unknown, { input: CreateUserInput }>(
     CREATE_USER,
   );
 
@@ -91,7 +91,7 @@ export const MainRouter = (): JSX.Element => {
       />
 
       {/* Test */}
-      <Route path="/test" element={<Test />} />
+      {/* <Route path="/test" element={<Test />} /> */}
 
       {/* Not Found */}
       <Route path="*" element={<NotFoundPage />} />

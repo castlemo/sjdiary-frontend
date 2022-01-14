@@ -9,12 +9,13 @@ import { MainTemplate } from '../templates/mainTemplate';
 export const MainPage = (): JSX.Element => {
   const [today, setToday] = useState(new Date());
 
-  const { data: dataMe, loading: isLoadingMe } = useQuery<{ me: MeOutput }>(
-    ME,
-    {
-      fetchPolicy: 'network-only',
-    },
-  );
+  const {
+    data: dataMe,
+    loading: isLoadingMe,
+    refetch: refetchMe,
+  } = useQuery<{ me: MeOutput }>(ME, {
+    fetchPolicy: 'network-only',
+  });
 
   if (isLoadingMe) {
     return <LoadingTemplate />;
