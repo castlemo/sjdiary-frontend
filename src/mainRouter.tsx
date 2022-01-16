@@ -91,7 +91,7 @@ export const MainRouter = (): JSX.Element => {
       />
 
       {/* Test */}
-      {/* <Route path="/test" element={<Test />} /> */}
+      <Route path="/test" element={<Test />} />
 
       {/* Not Found */}
       <Route path="*" element={<NotFoundPage />} />

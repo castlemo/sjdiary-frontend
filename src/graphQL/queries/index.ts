@@ -10,7 +10,6 @@ export const ME = gql`
   query Me {
     me {
       createdAt
-      deletedAt
       email
       id
       name

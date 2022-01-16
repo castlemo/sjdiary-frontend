@@ -50,7 +50,9 @@
         "react/require-default-props": "off",
         "react/jsx-props-no-spreading": "off",
         "import/no-cycle": "off",
-        "no-plusplus": "off"
+        "no-plusplus": "off",
+        "react/display-name": ["off", { "ignoreTranspilerName": false }],
+        "react/no-unused-prop-types": ["off"]
     },
     "ignorePatterns": [
         "dist/",

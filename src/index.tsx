@@ -1,6 +1,8 @@
 import ReactDOM from 'react-dom';
 import { createBrowserHistory } from 'history';
 import { ThemeProvider } from 'styled-components';
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 import App from './App';
 import reportWebVitals from './reportWebVitals';
@@ -15,13 +17,14 @@ ReactDOM.render(
   <Auth0Wrapper>
     <GraphQLProvider>
       <ThemeProvider theme={theme}>
-        <App />
+        <DndProvider backend={HTML5Backend}>
+          <App />
+        </DndProvider>
       </ThemeProvider>
     </GraphQLProvider>
   </Auth0Wrapper>,
   document.getElementById('root'),
 );
-// ReactDOM.render(<Test />, document.getElementById('root'));
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))

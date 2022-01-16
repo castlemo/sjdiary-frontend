@@ -58,7 +58,7 @@ export const DiaryCreateCard = ({
           marginTop: 2,
         }}
       >
-        드래그해서 시간을 설정할 수 있어요
+        드래그해서 시간을 설정해주세요.
       </span>
     </StyledDiaryCreateCard>
   );

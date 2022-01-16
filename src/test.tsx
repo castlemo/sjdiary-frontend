@@ -1,5 +1,7 @@
 import styled from 'styled-components';
-import { useDrag } from 'react-dnd';
+import moment from 'moment';
+import { Calendar, momentLocalizer } from 'react-big-calendar';
+import 'react-big-calendar/lib/css/react-big-calendar.css';
 
 const StyledTestWrapper = styled.div`
   width: 100%;
@@ -7,72 +9,107 @@ const StyledTestWrapper = styled.div`
   background-color: white;
 `;
 
-const mockItems = [...new Array(23).keys()];
-
-const Knight = () => {
-  return <span>♘</span>;
+const TestStyle: React.CSSProperties = {
+  width: '100%',
+  height: '100%',
+  backgroundColor: 'white',
 };
 
-const Square = ({ black = true, children }: any) => {
-  const fill = black ? 'black' : 'white';
-  const stroke = black ? 'white' : 'black';
+const tempData = [
+  {
+    id: 0,
+    contents: '0',
+    startedAt: new Date(),
+    finishedAt: new Date(),
+  },
+  {
+    id: 1,
+    contents: '1',
+    startedAt: new Date(),
+    finishedAt: new Date(),
+  },
+  {
+    id: 2,
+    contents: '2',
+    startedAt: new Date(),
+    finishedAt: new Date(),
+  },
+  {
+    id: 3,
+    contents: '3',
+    startedAt: new Date(),
+    finishedAt: new Date(),
+  },
+];
+
+const Toolbar = (props: any) => {
+  const { date, onNavigate } = props;
+
+  console.log(props);
+
+  const navigate = (action: 'TODAY' | 'PREV' | 'NEXT') => {
+    onNavigate(action);
+  };
 
   return (
-    <div
-      style={{
-        backgroundColor: fill,
-        color: stroke,
-        width: '100%',
-        height: '100%',
-      }}
-    >
-      {children}
-    </div>
-  );
-};
-
-const renderSquare = (i: any, [knightX, knightY]: any) => {
-  const x = i % 8;
-  const y = Math.floor(i / 8);
-  const isKnightHere = x === knightX && y === knightY;
-  const black = (x + y) % 2 === 1;
-  const piece = isKnightHere ? <Knight /> : null;
-
-  return (
-    <div key={i} style={{ width: '12.5%', height: '12.5%' }}>
-      <Square black={black}>{piece}</Square>
-    </div>
-  );
-};
-
-const Board = ({ knightPosition }: any) => {
-  const squares = [];
-  for (let i = 0; i < 64; i++) {
-    squares.push(renderSquare(i, knightPosition));
-  }
-
-  return (
-    <div
-      style={{
-        width: '100%',
-        height: '100%',
-        display: 'flex',
-        flexWrap: 'wrap',
-      }}
-    >
-      {squares}
+    <div className="rbc-toolbar">
+      <span className="rbc-btn-group">
+        <button
+          type="button"
+          onClick={() => {
+            navigate('TODAY');
+          }}
+        >
+          이번달
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            navigate('PREV');
+          }}
+        >
+          이전
+        </button>
+        <span className="rbc-toolbar-label">{`${date.getFullYear()}년 ${
+          date.getMonth() + 1
+        }월`}</span>
+        <button
+          type="button"
+          onClick={() => {
+            navigate('NEXT');
+          }}
+        >
+          다음
+        </button>
+      </span>
     </div>
   );
 };
 
 export const Test = () => {
-  return <Board knightPosition={[7, 4]} />;
+  moment.locale('en-GB', {
+    week: {
+      dow: 1,
+      doy: 1,
+    },
+  });
+  const localizer = momentLocalizer(moment);
 
   return (
-    <StyledTestWrapper>
-      <Square black>
-        <Knight />
-      </Square>
-    </StyledTestWrapper>
+    <Calendar
+      localizer={localizer}
+      events={tempData}
+      formats={{
+        timeGutterFormat: 'HH시',
+      }}
+      style={TestStyle}
+      titleAccessor="contents"
+      startAccessor="startedAt"
+      endAccessor="finishedAt"
+      defaultView="week"
+      components={{
+        toolbar: Toolbar,
+      }}
+    />
   );
 };

@@ -1,6 +1,5 @@
 export type MeOutput = {
   createdAt: number;
-  deletedAt: number;
   email: string;
   id: number;
   name: string;
@@ -9,11 +8,11 @@ export type MeOutput = {
 };
 
 export type TodoOutput = {
-  completedAt?: number;
+  completedAt?: Date;
   contents: string;
-  createdAt: number;
-  finishedAt: number;
+  createdAt: Date;
+  finishedAt: Date;
   id: number;
-  startedAt: number;
-  updatedAt: number;
+  startedAt: Date;
+  updatedAt: Date;
 };
