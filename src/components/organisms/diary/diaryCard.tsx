@@ -1,17 +1,29 @@
-import { FC, useEffect, useMemo, useRef } from 'react';
-import { DropTargetMonitor, useDrag, useDrop, XYCoord } from 'react-dnd';
+import React, { FC, useCallback, useEffect, useRef, useState } from 'react';
+import { DragSourceMonitor, useDrag } from 'react-dnd';
+import { getEmptyImage } from 'react-dnd-html5-backend';
 import styled, { useTheme } from 'styled-components';
+
+import { DiaryCardTypes, THIRTY_MINUTES_TIME } from '../../../constant';
 import { TodoOutput } from '../../../graphQL/types';
 
+type StyleType = 'drag' | 'none';
+
 const StyledDiaryCard = styled.div<{
+  styleType: StyleType;
   height: number;
+  left: number;
+  top: number;
+  parentWidth: number;
   isDragging: boolean;
-  isOver: boolean;
 }>`
-  width: auto;
+  position: ${({ styleType }) => (styleType === 'drag' ? null : 'absolute')};
+  top: ${({ top }) => top}px;
+  left: ${({ left }) => left}px;
+
+  width: ${({ parentWidth }) => parentWidth}px;
   height: ${({ height }) => height}px;
 
-  display: flex;
+  display: ${({ isDragging }) => (isDragging ? 'none' : 'flex')};
   flex-direction: column;
   justify-content: center;
   align-content: center;
@@ -21,39 +33,40 @@ const StyledDiaryCard = styled.div<{
   border: 0.5px solid ${({ theme }) => theme.colors.grey3};
   box-sizing: border-box;
 
-  z-index: ${({ isDragging }) => (isDragging ? 2 : 0)};
-
   padding: 0px 0px 0px 20px;
 
-  opacity: 1;
+  z-index: ${({ isDragging }) => (isDragging ? 1000 : undefined)};
 `;
 
-type DragItem = {
-  id: number;
-  type: string;
-  index: number;
-};
-
 type PropTypes = {
+  styleType: StyleType;
   todo: TodoOutput;
   originalIndex: number;
-  moveCard: (id: number, toIndex: number) => void;
+  parentWidth: number;
+  height: number;
+  today: Date;
+  left: number;
+  isTimeUndecided?: boolean;
 };
 
-const ItemTypes = {
-  CARD: 'card',
-} as const;
-
 export const DiaryCard: FC<PropTypes> = ({
+  styleType,
   todo,
   originalIndex,
-  moveCard = () => {},
-}) => {
+  parentWidth,
+  today,
+  height,
+  left,
+  isTimeUndecided = false,
+}): JSX.Element => {
   const theme = useTheme();
 
-  const ref = useRef<HTMLDivElement>(null);
+  const timeToString = (timestamp?: number) => {
+    if (!timestamp) {
+      return '';
+    }
 
-  const timeToString = (date: Date) => {
+    const date = new Date(timestamp);
     const hour = date.getHours();
     const minute = date.getMinutes();
 
@@ -66,66 +79,57 @@ export const DiaryCard: FC<PropTypes> = ({
     return str;
   };
 
-  const getHeight = (startedAt: Date, finishedAt: Date) => {
-    const THIRTY_MINUTES_TIMESTAMP = 1000 * 60 * 30;
+  const getTop = useCallback(
+    (startedAt?: number, finishedAt?: number): number => {
+      let top = isTimeUndecided ? 180 : 0;
+      if (!startedAt || !finishedAt) {
+        return top + 60 + originalIndex * 30;
+      }
 
-    return (
-      Math.floor((+finishedAt - +startedAt) / THIRTY_MINUTES_TIMESTAMP) * 30
-    );
-  };
+      const year = today.getFullYear();
+      const month = today.getMonth();
+      const date = today.getDate();
+
+      const zeroTimeToday = +new Date(year, month, date, 0, 0, 0);
+
+      top += Math.floor((startedAt - zeroTimeToday) / THIRTY_MINUTES_TIME) * 30;
+
+      return top;
+    },
+    [todo],
+  );
 
   const { startedAt, finishedAt } = todo;
-  const startedStr = useMemo(() => timeToString(startedAt), [todo]);
-  const finishedStr = useMemo(() => timeToString(finishedAt), [todo]);
+  const startedStr = timeToString(startedAt);
+  const finishedStr = timeToString(finishedAt);
 
-  const height = useMemo(() => getHeight(startedAt, finishedAt), [todo]);
-
-  const [{ isOver, handlerId }, drop] = useDrop({
-    accept: ItemTypes.CARD,
-    collect: (monitor) => ({
-      isOver: monitor.isOver(),
-      handlerId: monitor.getHandlerId(),
-    }),
-    hover({ id: dragId }: DragItem) {
-      if (!ref.current) {
-        return;
-      }
-
-      if (dragId !== todo.id) {
-        moveCard(dragId, originalIndex);
-      }
-    },
-  });
+  const top = getTop(startedAt, finishedAt);
 
   const [{ isDragging }, drag, dragPreview] = useDrag({
-    type: ItemTypes.CARD,
-    item: () => ({ type: ItemTypes.CARD, id: todo.id, index: originalIndex }),
-    collect: (monitor: Record<string, any>) => ({
+    type: DiaryCardTypes.TODO,
+    item: () => ({
+      item: { ...todo },
+      originalIndex,
+      today,
+    }),
+    collect: (monitor: DragSourceMonitor) => ({
       isDragging: monitor.isDragging(),
     }),
-    end: (dropResult, monitor) => {
-      console.log(dropResult, monitor.getItem());
-      const { id } = monitor.getItem();
-      const didDrop = monitor.didDrop();
-
-      if (!didDrop) {
-        moveCard(id, originalIndex);
-      }
-    },
   });
 
   useEffect(() => {
-    drop(dragPreview(ref));
-    drag(ref);
-  }, [ref]);
+    dragPreview(getEmptyImage(), { captureDraggingState: true });
+  }, [dragPreview]);
 
   return (
     <StyledDiaryCard
+      styleType={styleType}
       height={height}
-      ref={ref}
+      top={top}
+      left={left}
+      ref={drag}
+      parentWidth={parentWidth ?? 0}
       isDragging={isDragging}
-      isOver={isOver}
-      data-handler-id={handlerId}
     >
       <span
         style={{

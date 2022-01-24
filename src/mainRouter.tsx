@@ -1,15 +1,15 @@
-import { useLazyQuery, useMutation, useQuery } from '@apollo/client';
+import { useMutation, useQuery } from '@apollo/client';
 import { useEffect, useMemo } from 'react';
-import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 
 import { useAuth0 } from './auth0';
-import { SigninPage, MainPage, NotFoundPage } from './components/pages';
+import { MainPage, NotFoundPage, SigninPage } from './components/pages';
 import { LoadingTemplate } from './components/templates';
 import { ROUTES } from './constant';
 import { CREATE_USER } from './graphQL/mutations';
 import { VERIFY_USER } from './graphQL/queries';
 import { CreateUserInput } from './graphQL/types';
-import { Test } from './test';
+import { Test } from './test/test';
 
 export const MainRouter = (): JSX.Element => {
   const {

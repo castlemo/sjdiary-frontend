@@ -1,3 +1,4 @@
+import React, { useEffect, useRef } from 'react';
 import styled, { useTheme } from 'styled-components';
 
 import { CONTENTS_MAX_LENGTH } from '../../../constant';
@@ -9,7 +10,8 @@ const StyledDiaryCreateCard = styled.div`
   align-items: center;
 
   width: 100%;
-  height: 66px;
+  max-height: 60px;
+  min-height: 60px;
 
   border: 0.5px solid ${({ theme }) => theme.colors.grey3};
   box-sizing: border-box;
@@ -29,6 +31,7 @@ export const DiaryCreateCard = ({
   setContents = () => {},
 }: PropTypes) => {
   const theme = useTheme();
+
   return (
     <StyledDiaryCreateCard>
       <input

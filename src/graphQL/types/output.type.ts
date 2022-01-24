@@ -8,11 +8,17 @@ export type MeOutput = {
 };
 
 export type TodoOutput = {
-  completedAt?: Date;
+  completedAt?: number;
   contents: string;
-  createdAt: Date;
-  finishedAt: Date;
+  createdAt: number;
+  finishedAt?: number;
   id: number;
-  startedAt: Date;
-  updatedAt: Date;
+  startedAt?: number;
+  updatedAt: number;
+};
+
+export type TodosOutput = {
+  noPeriodTodos: TodoOutput[];
+  timeUndecidedTodos: TodoOutput[];
+  todos: TodoOutput[];
 };

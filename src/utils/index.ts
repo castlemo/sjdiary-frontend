@@ -1,5 +1,9 @@
 import { Console } from 'console';
 
+import { useCallback } from 'react';
+
+import { THIRTY_MINUTES_TIME } from '../constant';
+
 export const getTodayZeroTimeTimestamp = (): number => {
   const todayDate = new Date();
   return +new Date(
@@ -73,4 +77,12 @@ export const getWeek = (date = new Date()): number => {
   }
 
   return week;
+};
+
+export const getDiaryCardHeight = (startedAt?: number, finishedAt?: number) => {
+  if (!startedAt || !finishedAt) {
+    return 30;
+  }
+
+  return Math.floor((finishedAt - startedAt) / THIRTY_MINUTES_TIME) * 30;
 };

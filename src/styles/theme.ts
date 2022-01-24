@@ -24,6 +24,9 @@ export const theme = {
     spoqaHanSansNeo: 'Spoqa Han Sans Neo',
     kotraHope: 'KOTRAHOPE',
   },
+  sizes: {
+    diaryCardHeight: 60,
+  },
 };
 
 export type Theme = typeof theme;

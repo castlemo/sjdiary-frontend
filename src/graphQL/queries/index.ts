@@ -1,5 +1,7 @@
 import { gql } from '@apollo/client';
 
+export * from './todos';
+
 export const VERIFY_USER = gql`
   query VerifyUser {
     verifyUser

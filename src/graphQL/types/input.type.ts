@@ -19,3 +19,8 @@ export type UpdateTodoMutationInput = {
   startedAt?: Date;
   endedAt?: Date;
 };
+
+export type TodosQueryInput = {
+  endDate: number;
+  startDate: number;
+};

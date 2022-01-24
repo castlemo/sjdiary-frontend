@@ -52,7 +52,25 @@
         "import/no-cycle": "off",
         "no-plusplus": "off",
         "react/display-name": ["off", { "ignoreTranspilerName": false }],
-        "react/no-unused-prop-types": ["off"]
+        "react/no-unused-prop-types": ["off"],
+        "sort-imports": [
+            "warn",
+            {
+              "ignoreCase": true,
+              "ignoreDeclarationSort": true,
+              "ignoreMemberSort": false,
+              "memberSyntaxSortOrder": ["none", "all", "multiple", "single"], // ? basically meaningless. "import/order"
+              "allowSeparatedGroups": true
+            }
+          ],
+          "import/order": [
+            "warn",
+            {
+              "newlines-between": "always",
+              "alphabetize": { "order": "asc" },
+              "groups": ["builtin", "external", "parent", "sibling", "index"]
+            }
+          ],
     },
     "ignorePatterns": [
         "dist/",

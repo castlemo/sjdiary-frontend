@@ -1,15 +1,14 @@
-import ReactDOM from 'react-dom';
 import { createBrowserHistory } from 'history';
-import { ThemeProvider } from 'styled-components';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import ReactDOM from 'react-dom';
+import { ThemeProvider } from 'styled-components';
 
 import App from './App';
-import reportWebVitals from './reportWebVitals';
 import { Auth0Wrapper } from './auth0';
 import { GraphQLProvider } from './graphQL/graphQLProvider';
+import reportWebVitals from './reportWebVitals';
 import { theme } from './styles/theme';
-import { Test } from './test';
 
 export const history = createBrowserHistory();
 
