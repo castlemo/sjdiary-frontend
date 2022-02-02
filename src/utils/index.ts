@@ -1,7 +1,3 @@
-import { Console } from 'console';
-
-import { useCallback } from 'react';
-
 import { THIRTY_MINUTES_TIME } from '../constant';
 
 export const getTodayZeroTimeTimestamp = (): number => {

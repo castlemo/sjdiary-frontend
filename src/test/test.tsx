@@ -17,28 +17,28 @@ import {
 import { getEmptyImage } from 'react-dnd-html5-backend';
 import styled from 'styled-components';
 
-interface DragItem {
+type DragItem = {
   id: string;
   type: string;
   left: number;
   top: number;
-}
+};
 
-interface Box {
+type Box = {
   top: number;
   left: number;
   title: string;
-}
+};
 
-interface BoxMap {
+type BoxMap = {
   [key: string]: Box;
-}
+};
 
-interface DraggableBoxProps {
+type DraggableBoxProps = {
   id: string;
   showEmptyPlaceholder: boolean;
   item: Box;
-}
+};
 
 export const ItemType = { BOX: 'box' } as const;
 

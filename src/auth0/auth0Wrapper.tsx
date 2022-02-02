@@ -8,6 +8,7 @@ import {
   useMemo,
   useState,
 } from 'react';
+
 import { AUTH0_AUDIENCE, AUTH0_CLIENT_ID, AUTH0_DOMAIN } from '../config';
 import { ROUTES } from '../constant';
 import { useCheckAuthLocalStorage } from '../hooks';
@@ -39,7 +40,10 @@ const auth0Context = createContext<Auth0Context>({
   isAuthenticated: false,
   isLoading: true,
   signIn: (): Promise<void> => Promise.resolve(),
-  signOut: () => {},
+  signOut: () => {
+    // TODO: 삭제 대기
+    console.log('signOut');
+  },
   getToken: (): Promise<string | undefined> => Promise.resolve(undefined),
   getAuth0UserProfile: (): Promise<Auth0UserProfile | undefined> =>
     Promise.resolve(undefined),
@@ -226,7 +230,6 @@ export const Auth0Wrapper = ({
       return profile;
     }
 
-    console.log('auth0UserData is not set');
     return undefined;
   }, [auth0UserData, fetchUserProfile]);
 

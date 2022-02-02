@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import styled from 'styled-components';
 
 import { DAYS } from '../../../constant';
-import { MeOutput } from '../../../graphQL/types';
+import { GetMeOutput } from '../../../graphQL/types';
 
 const StyledCalendar = styled.div`
   width: 100%;
@@ -29,7 +29,7 @@ const StyledCalendarItem = styled.div<{ isToday: boolean }>`
 `;
 
 type PropTypes = {
-  dataMe?: MeOutput;
+  dataMe?: GetMeOutput;
   today: Date;
   setToday: React.Dispatch<React.SetStateAction<Date>>;
 };
@@ -37,7 +37,7 @@ type PropTypes = {
 export const WeekCalendar = ({
   dataMe,
   today = new Date(),
-  setToday = () => {},
+  setToday,
 }: PropTypes) => {
   const dates = useMemo(() => {
     let startOfWeekDate: Date;

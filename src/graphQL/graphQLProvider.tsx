@@ -18,7 +18,7 @@ export const GraphQLProvider = ({
 }): JSX.Element => {
   const { getToken, isAuthenticated } = useAuth0();
 
-  const httpLink = new HttpLink({ uri: SERVER_API_URL });
+  const httpLink = new HttpLink({ uri: `${SERVER_API_URL}/graphql` });
 
   /* istanbul ignore next */
   const authLink = setContext(async () => {

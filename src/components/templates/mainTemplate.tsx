@@ -1,23 +1,20 @@
-import React, {
-  FC,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { FC, useEffect, useMemo, useRef, useState } from 'react';
 import { DropTargetMonitor, useDrop } from 'react-dnd';
 import styled, { useTheme } from 'styled-components';
 
-import { DiaryCardTypes, THIRTY_MINUTES_TIME } from '../../constant';
-import { MeOutput, TodoOutput, TodosOutput } from '../../graphQL/types';
+import { THIRTY_MINUTES_TIME } from '../../constant';
+import {
+  GetMeOutput,
+  GetReviewOutput,
+  GetReviewsOutput,
+  GetTodoOutput,
+  GetTodosOutput,
+} from '../../graphQL/types';
+import { useWindowSize } from '../../hooks';
 import { getDiaryCardHeight } from '../../utils';
 import { DiaryCardDragLayer } from '../molecules';
 import { DiaryCard, DiaryCreateCard, MainHeader } from '../organisms';
 import { WeekCalendar } from '../organisms/calendar';
-
-import { LoadingTemplate } from '.';
-// import { DiaryCalendar } from '../organisms/calendar';
 
 const StyledMainTemplate = styled.div`
   width: 100%;
@@ -113,9 +110,14 @@ const StyledTimeUndecidedContainer = styled.div<{ width: number }>`
   z-index: 1;
 `;
 
-const StyledTimeUndecided = styled.div<{ width: number }>`
-  width: ${({ width }) => width}px;
-  min-height: 180px;
+const StyledTimeUndecided = styled.div<{
+  width: number;
+  isTimeUndecidedTodos: boolean | undefined;
+}>`
+  min-width: ${({ width }) => width}px;
+  min-height: ${({ isTimeUndecidedTodos }) =>
+    isTimeUndecidedTodos ? 180 : 0}px;
+
   display: flex;
   justify-content: center;
   align-items: center;
@@ -123,57 +125,129 @@ const StyledTimeUndecided = styled.div<{ width: number }>`
   color: ${({ theme }) => theme.colors.purple1};
 `;
 
-const StyledDiaryCarteCardContainer = styled.div<{
+const StyledDiaryCreateCardContainer = styled.div<{
   width: number;
   left: number;
 }>`
   width: ${({ width }) => width}px;
   height: ${({ theme }) => theme.sizes.diaryCardHeight}px;
 
-  position: absolute;
-
   display: flex;
   flex-direction: row;
 
-  left: ${({ left }) => left}px;
+  /* left: ${({ left }) => left}px; */
 `;
 
 type PropTypes = {
-  dataMe?: MeOutput;
+  dataMe?: GetMeOutput;
   today: Date;
-  dataTodo?: TodosOutput;
+  dataTodos?: GetTodosOutput;
+  dataReviews?: GetReviewsOutput;
   setToday: React.Dispatch<React.SetStateAction<Date>>;
 };
 
 export const MainTemplate: FC<PropTypes> = ({
   dataMe,
   today,
-  dataTodo,
+  dataTodos,
+  dataReviews,
   setToday,
 }): JSX.Element => {
   const theme = useTheme();
+  const windowSize = useWindowSize();
+
   const nowHour = today.getHours();
 
   const todoTitleRef = useRef<HTMLDivElement>(null);
-  const reviewTitleRef = useRef<HTMLDivElement>(null);
   const timeTitleRef = useRef<HTMLDivElement>(null);
-  const [diaryCardWidth, setDiaryCardWidth] = useState<number>(0);
-  const [timeCardWidth, setTimeCardWidth] = useState<number>(0);
-  const [scrollTop, setScrollTop] = useState<number>(0);
+  const diaryContainerRef = useRef<HTMLDivElement>(null);
 
-  const [todoContents, setTodoContents] = useState('');
-  const [reviewContents, setReviewContents] = useState('');
+  const [diaryContainerStartedY, setDiaryContainerStartedY] = useState(0);
+  const [diaryCardWidth, setDiaryCardWidth] = useState(0);
+  const [timeCardWidth, setTimeCardWidth] = useState(0);
+  const [scrollTop, setScrollTop] = useState(0);
 
   const isTimeUndecidedTodos = useMemo(
     () =>
-      dataTodo?.timeUndecidedTodos && dataTodo.timeUndecidedTodos.length > 0,
-    [dataTodo],
+      (dataTodos?.timeUndecidedTodos &&
+        dataTodos.timeUndecidedTodos.length > 0) ||
+      (dataReviews?.timeUndecidedReviews &&
+        dataReviews.timeUndecidedReviews.length > 0),
+    [dataTodos, dataReviews],
   );
+
+  const getNewStartedAt = (y: number) => {
+    const year = today.getFullYear();
+    const month = today.getMonth();
+    const date = today.getDate();
+    const todayZeroHourTimestamp = new Date(year, month, date).getTime();
+
+    const calcCurrentY = Math.floor(y - (y % 10));
+    const calcScrollTop = Math.floor(scrollTop - (scrollTop % 10));
+    const calcDiaryContainerStartedY = Math.floor(
+      diaryContainerStartedY - (diaryContainerStartedY % 10),
+    );
+
+    const calcY = calcCurrentY + calcScrollTop - calcDiaryContainerStartedY;
+
+    const startTime =
+      todayZeroHourTimestamp + Math.floor(calcY / 30) * THIRTY_MINUTES_TIME;
+    const finishTime = 0;
+
+    return startTime;
+  };
+
+  const [, todoDrop] = useDrop({
+    accept: 'todo',
+    drop(item: GetTodoOutput & { id?: number }, monitor: DropTargetMonitor) {
+      console.log('====todo-drop====');
+      const currentOffset = monitor.getSourceClientOffset() as {
+        x: number;
+        y: number;
+      };
+
+      const startedAt = getNewStartedAt(currentOffset.y);
+
+      if (item.id) {
+        console.log({ ...item });
+      } else {
+        console.log({ ...item });
+      }
+
+      console.log({
+        start: new Date(startedAt),
+        finish: new Date(0),
+      });
+    },
+  });
+
+  const [, reviewDrop] = useDrop({
+    accept: 'review',
+    drop(item: GetReviewOutput & { id?: number }, monitor: DropTargetMonitor) {
+      console.log('====review-drop====');
+      const currentOffset = monitor.getSourceClientOffset() as {
+        x: number;
+        y: number;
+      };
+
+      const startedAt = getNewStartedAt(currentOffset.y);
+
+      if (item.id) {
+        console.log({ ...item });
+      } else {
+        console.log({ ...item });
+      }
+
+      console.log({
+        start: new Date(startedAt),
+        finish: new Date(0),
+      });
+    },
+  });
 
   useEffect(() => {
     if (timeTitleRef.current) {
       const timeRect = timeTitleRef.current.getBoundingClientRect();
-      // console.log('timeRect: ', timeRect);
       setTimeCardWidth(timeRect.width);
     }
   }, [timeTitleRef]);
@@ -181,98 +255,19 @@ export const MainTemplate: FC<PropTypes> = ({
   useEffect(() => {
     if (todoTitleRef.current) {
       const todoRect = todoTitleRef.current.getBoundingClientRect();
-      // console.log('todoRect: ', todoRect);
       setDiaryCardWidth(todoRect.width);
     }
-  }, [todoTitleRef]);
+  }, [todoTitleRef, windowSize]);
 
   useEffect(() => {
-    if (reviewTitleRef.current) {
-      const reviewRect = reviewTitleRef.current.getBoundingClientRect();
-      // console.log('reviewRect: ', reviewRect);
+    if (diaryContainerRef.current) {
+      todoDrop(diaryContainerRef);
+      reviewDrop(diaryContainerRef);
+      const diaryContainerRect =
+        diaryContainerRef.current.getBoundingClientRect();
+      setDiaryContainerStartedY(diaryContainerRect.top);
     }
-  }, [reviewTitleRef]);
-
-  const renderDiaryCard = (todo: TodoOutput, index: number) => {
-    const { startedAt, finishedAt } = todo;
-    const height = getDiaryCardHeight(startedAt, finishedAt);
-
-    return (
-      <DiaryCard
-        left={1}
-        height={height}
-        todo={todo}
-        today={today}
-        key={todo.id}
-        originalIndex={index}
-        parentWidth={diaryCardWidth}
-        styleType="none"
-      />
-    );
-  };
-
-  const renderCreateDiaryCard = () => {
-    return (
-      <StyledDiaryCarteCardContainer
-        left={timeCardWidth}
-        width={diaryCardWidth * 2}
-      >
-        <DiaryCreateCard
-          contents={todoContents}
-          setContents={setTodoContents}
-          inputPlaceHolder="예정된 할일을 입력해주세요."
-        />
-        <DiaryCreateCard
-          contents={reviewContents}
-          setContents={setReviewContents}
-          inputPlaceHolder="오늘 했던 일을 입력해주세요."
-        />
-      </StyledDiaryCarteCardContainer>
-    );
-  };
-
-  const [, drop] = useDrop({
-    accept: DiaryCardTypes.TODO,
-    drop(item: Record<string, any>, monitor: DropTargetMonitor) {
-      const delta = monitor.getDifferenceFromInitialOffset() as {
-        x: number;
-        y: number;
-      };
-
-      const year = item.today.getFullYear();
-      const month = item.today.getMonth();
-      const date = item.today.getDate();
-      const todayZeroHour = new Date(year, month, date).getTime();
-
-      const isItemStartedAt = !!item.item.startedAt;
-      const itemStartedAt = isItemStartedAt
-        ? item.item.startedAt
-        : todayZeroHour;
-
-      let scrollingY = delta.y + scrollTop;
-
-      if (!isItemStartedAt) {
-        scrollingY -= 30 * (4 - item.originalIndex);
-      }
-
-      const diff = Math.ceil(Math.abs(scrollingY) / 30) * THIRTY_MINUTES_TIME;
-
-      const is = new Date(itemStartedAt);
-      let before: Date;
-
-      if (delta.y > 0) {
-        before = new Date(itemStartedAt + diff);
-      } else {
-        before = new Date(itemStartedAt - diff);
-      }
-
-      console.log({ isItemStartedAt, diff });
-      console.log({ ...item });
-      console.log({ ...delta });
-      console.log(is);
-      console.log(before);
-    },
-  });
+  }, [diaryContainerRef]);
 
   return (
     <StyledMainTemplate>
@@ -284,52 +279,96 @@ export const MainTemplate: FC<PropTypes> = ({
           <StyledDiaryTitle isEmpty={false} ref={todoTitleRef}>
             오늘은 이렇게 보내고 싶어요
           </StyledDiaryTitle>
-          <StyledDiaryTitle isEmpty={false} ref={reviewTitleRef}>
+          <StyledDiaryTitle isEmpty={false}>
             오늘은 이렇게 보내고 싶어요
           </StyledDiaryTitle>
         </StyledDiaryTitleContainer>
+        <div
+          style={{
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'row',
+          }}
+        >
+          <StyledTimeUndecided
+            width={timeCardWidth}
+            isTimeUndecidedTodos={isTimeUndecidedTodos}
+          >
+            {isTimeUndecidedTodos ? '시간 미정' : ''}
+          </StyledTimeUndecided>
+          <div
+            style={{
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <DiaryCreateCard
+              dragItemType="todo"
+              inputPlaceHolder="예정된 할일을 입력해주세요."
+            />
+            {isTimeUndecidedTodos &&
+              dataTodos?.timeUndecidedTodos.map((todo, i) => {
+                const { startedAt, finishedAt } = todo;
+                const height = getDiaryCardHeight(startedAt, finishedAt);
+
+                return (
+                  <DiaryCard
+                    dragItemType="review"
+                    item={todo}
+                    height={height}
+                    parentWidth={diaryCardWidth}
+                    left={timeCardWidth}
+                    key={todo.id}
+                    styleType="timeLess"
+                    originalIndex={i}
+                    today={today}
+                  />
+                );
+              })}
+          </div>
+          <div
+            style={{
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <DiaryCreateCard
+              dragItemType="review"
+              inputPlaceHolder="오늘 했던 일을 입력해주세요."
+            />
+            {isTimeUndecidedTodos &&
+              dataReviews?.timeUndecidedReviews.map((review, i) => {
+                const { startedAt, finishedAt } = review;
+                const height = getDiaryCardHeight(startedAt, finishedAt);
+
+                return (
+                  <DiaryCard
+                    dragItemType="review"
+                    item={review}
+                    height={height}
+                    parentWidth={diaryCardWidth}
+                    left={timeCardWidth + diaryCardWidth}
+                    key={review.id}
+                    styleType="timeLess"
+                    originalIndex={i}
+                    today={today}
+                  />
+                );
+              })}
+          </div>
+        </div>
         <StyledDiaryContainer
-          ref={drop}
+          ref={diaryContainerRef}
           onScroll={(e: React.UIEvent<HTMLDivElement, UIEvent>) => {
             const currentScrollTop = e.currentTarget.scrollTop;
             setScrollTop(currentScrollTop);
           }}
         >
-          <DiaryCardDragLayer parentWidth={diaryCardWidth} />
-          {isTimeUndecidedTodos ? (
-            <StyledTimeUndecidedContainer
-              width={diaryCardWidth * 2 + timeCardWidth}
-            >
-              {renderCreateDiaryCard()}
-              <StyledTimeUndecided width={timeCardWidth}>
-                시간 미정
-              </StyledTimeUndecided>
-              {isTimeUndecidedTodos &&
-                dataTodo?.timeUndecidedTodos.map((todo, i) => {
-                  const { startedAt, finishedAt } = todo;
-                  const height = getDiaryCardHeight(startedAt, finishedAt);
-
-                  return (
-                    <DiaryCard
-                      todo={todo}
-                      height={height}
-                      parentWidth={diaryCardWidth}
-                      left={timeCardWidth}
-                      key={todo.id}
-                      styleType="none"
-                      originalIndex={i}
-                      today={today}
-                    />
-                  );
-                })}
-              {/* 시간 미정 review 작업 해야함 */}
-            </StyledTimeUndecidedContainer>
-          ) : (
-            <>{renderCreateDiaryCard()}</>
-          )}
+          <DiaryCardDragLayer parentWidth={diaryCardWidth} today={today} />
           {[...new Array(24).keys()].map((hour, i) => {
-            let top = i * 60;
-            top += isTimeUndecidedTodos ? 180 : 0;
+            const top = i * 60;
 
             return (
               <StyledTime
@@ -342,32 +381,14 @@ export const MainTemplate: FC<PropTypes> = ({
               </StyledTime>
             );
           })}
-          {[...new Array(48).keys()].map((num, i) => {
-            let top = i * 30;
-            top += isTimeUndecidedTodos ? 180 : 0;
-
-            const border = `1px dashed ${theme.colors.white1}`;
-
-            return (
-              <div
-                key={num}
-                style={{
-                  position: 'absolute',
-                  border,
-                  top,
-                  width: diaryCardWidth,
-                  left: timeCardWidth,
-                }}
-              />
-            );
-          })}
-          {dataTodo?.todos.map((todo, i) => {
+          {dataTodos?.todos.map((todo, i) => {
             const { startedAt, finishedAt } = todo;
             const height = getDiaryCardHeight(startedAt, finishedAt);
 
             return (
               <DiaryCard
-                todo={todo}
+                dragItemType="todo"
+                item={todo}
                 height={height}
                 parentWidth={diaryCardWidth}
                 left={timeCardWidth}
@@ -375,7 +396,24 @@ export const MainTemplate: FC<PropTypes> = ({
                 styleType="none"
                 originalIndex={i}
                 today={today}
-                isTimeUndecided={isTimeUndecidedTodos}
+              />
+            );
+          })}
+          {dataReviews?.reviews.map((review, i) => {
+            const { startedAt, finishedAt } = review;
+            const height = getDiaryCardHeight(startedAt, finishedAt);
+
+            return (
+              <DiaryCard
+                dragItemType="review"
+                item={review}
+                height={height}
+                parentWidth={diaryCardWidth}
+                left={timeCardWidth + diaryCardWidth}
+                key={review.id}
+                styleType="none"
+                originalIndex={i}
+                today={today}
               />
             );
           })}

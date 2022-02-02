@@ -1,4 +1,4 @@
-export type MeOutput = {
+export type GetMeOutput = {
   createdAt: number;
   email: string;
   id: number;
@@ -7,7 +7,7 @@ export type MeOutput = {
   updatedAt: number;
 };
 
-export type TodoOutput = {
+export type GetTodoOutput = {
   completedAt?: number;
   contents: string;
   createdAt: number;
@@ -17,8 +17,21 @@ export type TodoOutput = {
   updatedAt: number;
 };
 
-export type TodosOutput = {
-  noPeriodTodos: TodoOutput[];
-  timeUndecidedTodos: TodoOutput[];
-  todos: TodoOutput[];
+export type GetTodosOutput = {
+  timeUndecidedTodos: GetTodoOutput[];
+  todos: GetTodoOutput[];
+};
+
+export type GetReviewOutput = {
+  contents: string;
+  createdAt: number;
+  finishedAt?: number;
+  id: number;
+  startedAt?: number;
+  updatedAt: number;
+};
+
+export type GetReviewsOutput = {
+  timeUndecidedReviews: GetReviewOutput[];
+  reviews: GetReviewOutput[];
 };

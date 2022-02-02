@@ -1,8 +1,8 @@
 import styled, { useTheme } from 'styled-components';
 
-import { getWeek } from '../../../utils';
 import { LeftArrowButton, RightArrowButton } from '../../../assets/img';
-import { MeOutput } from '../../../graphQL/types';
+import { GetMeOutput } from '../../../graphQL/types';
+import { getWeek } from '../../../utils';
 
 const StyledHeaderWrapper = styled.header`
   width: 100%;
@@ -49,7 +49,7 @@ const StyledTodayButton = styled.button`
 `;
 
 type PropTypes = {
-  dataMe?: MeOutput;
+  dataMe?: GetMeOutput;
   today: Date;
   setToday: React.Dispatch<React.SetStateAction<Date>>;
 };
@@ -57,7 +57,7 @@ type PropTypes = {
 export const MainHeader = ({
   dataMe,
   today,
-  setToday = () => {},
+  setToday,
 }: PropTypes): JSX.Element => {
   const theme = useTheme();
 

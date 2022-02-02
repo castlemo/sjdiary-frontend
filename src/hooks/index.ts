@@ -1,3 +1,4 @@
+export * from './useWindowSize';
 export const useCheckAuthLocalStorage = () => {
   const LOCAL_STORAGE_KEY = 'checkAuth';
   const localStorageValues = {

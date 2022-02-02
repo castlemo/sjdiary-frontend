@@ -1,9 +1,9 @@
 import { ApolloError, gql, QueryHookOptions, useQuery } from '@apollo/client';
 
-import { TodoOutput, TodosOutput, TodosQueryInput } from '../types';
+import { GetTodoOutput, GetTodosOutput, GetTodosQueryInput } from '../types';
 
-const TODOS = gql`
-  query TODOS($input: TodosInput!) {
+export const GET_TODOS = gql`
+  query Todos($input: TodosInput!) {
     todos(input: $input) {
       id
       contents
@@ -16,16 +16,20 @@ const TODOS = gql`
   }
 `;
 
-type UseGetTodosQuery = {
-  data?: TodosOutput;
-  loading: boolean;
-  error?: ApolloError;
-  refetch: (variables?: TodosQueryInput) => void;
+type Variables = {
+  input: GetTodosQueryInput;
 };
 
-interface Data {
-  todos: TodoOutput[];
-}
+type Data = {
+  todos: GetTodoOutput[];
+};
+
+type UseGetTodosQuery = {
+  data?: GetTodosOutput;
+  loading: boolean;
+  error?: ApolloError;
+  refetch: (variables?: Variables) => void;
+};
 
 // test code
 const now = new Date();
@@ -35,7 +39,7 @@ const year = now.getFullYear();
 const month = now.getMonth();
 const date = now.getDate();
 
-const tempData: TodosOutput = {
+const tempData: GetTodosOutput = {
   todos: [
     {
       id: 0,
@@ -126,101 +130,67 @@ const tempData: TodosOutput = {
       updatedAt: tNow,
     },
   ],
-  noPeriodTodos: [
-    {
-      id: 5,
-      contents: 'no5번투두',
-      startedAt: undefined,
-      finishedAt: undefined,
-      createdAt: tNow,
-      updatedAt: tNow,
-    },
-    {
-      id: 6,
-      contents: 'no6번투두',
-      startedAt: undefined,
-      finishedAt: undefined,
-      createdAt: tNow,
-      updatedAt: tNow,
-    },
-    {
-      id: 7,
-      contents: 'no7번투두',
-      startedAt: undefined,
-      finishedAt: undefined,
-      createdAt: tNow,
-      updatedAt: tNow,
-    },
-    {
-      id: 8,
-      contents: 'no8번투두',
-      startedAt: undefined,
-      finishedAt: undefined,
-      createdAt: tNow,
-      updatedAt: tNow,
-    },
-  ],
   timeUndecidedTodos: [
-    {
-      id: 5,
-      contents: 'no5번투두',
-      startedAt: undefined,
-      finishedAt: undefined,
-      createdAt: tNow,
-      updatedAt: tNow,
-    },
-    {
-      id: 6,
-      contents: 'no6번투두',
-      startedAt: undefined,
-      finishedAt: undefined,
-      createdAt: tNow,
-      updatedAt: tNow,
-    },
-    {
-      id: 7,
-      contents: 'no7번투두',
-      startedAt: undefined,
-      finishedAt: undefined,
-      createdAt: tNow,
-      updatedAt: tNow,
-    },
-    {
-      id: 8,
-      contents: 'no8번투두',
-      startedAt: undefined,
-      finishedAt: undefined,
-      createdAt: tNow,
-      updatedAt: tNow,
-    },
+    // {
+    //   id: 5,
+    //   contents: 'no5번투두',
+    //   startedAt: undefined,
+    //   finishedAt: undefined,
+    //   createdAt: tNow,
+    //   updatedAt: tNow,
+    // },
+    // {
+    //   id: 6,
+    //   contents: 'no6번투두',
+    //   startedAt: undefined,
+    //   finishedAt: undefined,
+    //   createdAt: tNow,
+    //   updatedAt: tNow,
+    // },
+    // {
+    //   id: 7,
+    //   contents: 'no7번투두',
+    //   startedAt: undefined,
+    //   finishedAt: undefined,
+    //   createdAt: tNow,
+    //   updatedAt: tNow,
+    // },
+    // {
+    //   id: 8,
+    //   contents: 'no8번투두',
+    //   startedAt: undefined,
+    //   finishedAt: undefined,
+    //   createdAt: tNow,
+    //   updatedAt: tNow,
+    // },
   ],
 };
 
-export const useTodosQuery = (
-  input: TodosQueryInput,
-  options?: QueryHookOptions<Data, TodosQueryInput>,
+export const useGetTodosQuery = (
+  input: GetTodosQueryInput,
+  options?: QueryHookOptions<Data, Variables>,
 ): UseGetTodosQuery => {
-  // const {
-  //   data: response,
-  //   loading,
-  //   error,
-  //   refetch,
-  // } = useQuery<Data, TodosQueryInput>(TODOS, {
-  //   ...options,
-  //   variables: input,
-  // });
+  const {
+    data: response,
+    loading,
+    error,
+    refetch,
+  } = useQuery<Data, Variables>(GET_TODOS, {
+    ...options,
+    variables: { input },
+  });
 
-  // const data = response?.todos.reduce(
-  //   (obj: ReturnsData, cur: TodoOutput) => {
-  //     if (cur.startedAt && cur.finishedAt) {
-  //       obj.todos.push(cur);
-  //     } else {
-  //       obj.todos.push(cur);
-  //     }
-  //     return obj;
-  //   },
-  //   { noPeriodTodos: [], todos: [] },
-  // );
+  const data = response?.todos.reduce(
+    (obj: GetTodosOutput, cur: GetTodoOutput) => {
+      if (cur.startedAt && cur.finishedAt) {
+        obj.todos.push(cur);
+      } else {
+        obj.timeUndecidedTodos.push(cur);
+      }
+      return obj;
+    },
+    { timeUndecidedTodos: [], todos: [] },
+  );
 
   // return {
   //   data,
@@ -230,8 +200,8 @@ export const useTodosQuery = (
 
   return {
     data: tempData,
-    loading: false,
-    error: undefined,
-    refetch: () => {},
+    loading,
+    error,
+    refetch,
   };
 };

@@ -1,8 +1,8 @@
-import styled, { useTheme } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import styled, { useTheme } from 'styled-components';
 
-import { ROUTES } from '../../constant';
 import { ErrorTiry, GoMainButton } from '../../assets/img';
+import { ROUTES } from '../../constant';
 
 const StyledNotFoundPageWrapper = styled.div`
   width: 100%;

@@ -1,7 +1,7 @@
 import styled, { useTheme } from 'styled-components';
 
-import { SignInOptions } from '../../auth0';
 import { GoogleLoginButton, LoginTiry } from '../../assets/img';
+import { SignInOptions } from '../../auth0';
 
 const StyledSignInWrapper = styled.div`
   width: 100%;

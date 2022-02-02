@@ -1,14 +1,14 @@
 import { useMutation, useQuery } from '@apollo/client';
 import { useEffect, useMemo } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { isVariableDeclaration } from 'typescript';
 
 import { useAuth0 } from './auth0';
 import { MainPage, NotFoundPage, SigninPage } from './components/pages';
 import { LoadingTemplate } from './components/templates';
 import { ROUTES } from './constant';
-import { CREATE_USER } from './graphQL/mutations';
+import { CREATE_USER, useCreateUserMutation } from './graphQL/mutations';
 import { VERIFY_USER } from './graphQL/queries';
-import { CreateUserInput } from './graphQL/types';
 import { Test } from './test/test';
 
 export const MainRouter = (): JSX.Element => {
@@ -18,9 +18,22 @@ export const MainRouter = (): JSX.Element => {
     getAuth0UserProfile,
   } = useAuth0();
 
-  const [requestCreateUser] = useMutation<unknown, { input: CreateUserInput }>(
-    CREATE_USER,
-  );
+  const {
+    createUser,
+    loading: loadingCreateUser,
+    error: errorCreateUser,
+  } = useCreateUserMutation();
+
+  const requestCreateUser = async () => {
+    const auth0UserProfile = await getAuth0UserProfile();
+    if (auth0UserProfile) {
+      createUser({
+        email: auth0UserProfile.email ?? '',
+        name: auth0UserProfile.name ?? '',
+        profileImageUrl: auth0UserProfile.picture ?? '',
+      });
+    }
+  };
 
   const {
     data: dataVerifyUser,
@@ -41,37 +54,17 @@ export const MainRouter = (): JSX.Element => {
     [isAuthenticated, isVerifyUser],
   );
 
-  const isLoading = useMemo(
-    () => isAuthLoading || loadingVerifyUser,
-    [isAuthLoading, loadingVerifyUser],
-  );
-
   useEffect(() => {
-    const createUser = async () => {
-      const auth0UserProfile = await getAuth0UserProfile();
-      if (auth0UserProfile) {
-        requestCreateUser({
-          variables: {
-            input: {
-              email: auth0UserProfile.email ?? '',
-              name: auth0UserProfile.name ?? '',
-              profileImageUrl: auth0UserProfile.picture ?? '',
-            },
-          },
-        });
-      }
-    };
-
-    if (isAuthenticated && !isVerifyUser) {
-      createUser();
+    if (isAuthenticated && isVerifyUser !== undefined && !isVerifyUser) {
+      requestCreateUser();
     }
-  }, []);
+  }, [isAuthenticated, isVerifyUser]);
 
-  if (isLoading) {
+  if (isAuthLoading || loadingVerifyUser || loadingCreateUser) {
     return <LoadingTemplate />;
   }
 
-  if (errorVerifyUser) {
+  if (errorVerifyUser || errorCreateUser) {
     // TODO Error Page 작업
     console.log({ errorVerifyUser });
   }

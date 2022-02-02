@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
 import { useAuth0 } from './auth0';
 
 export const AppDebug = () => {

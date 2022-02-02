@@ -1,10 +1,10 @@
 import { BrowserRouter } from 'react-router-dom';
 import styled from 'styled-components';
 
-import { MainRouter } from './mainRouter';
-import { GlobalStyle } from './styles/globalStyles';
 import { AppDebug } from './AppDebug';
 import { REACT_APP_MODE } from './config';
+import { MainRouter } from './mainRouter';
+import { GlobalStyle } from './styles/globalStyles';
 
 const AppWrapper = styled.div`
   width: 60%;

@@ -10,7 +10,4 @@ export type DragType = 'todo' | 'review';
 
 export const THIRTY_MINUTES_TIME = 1800000;
 
-export const DiaryCardTypes = {
-  TODO: 'todo',
-  REVIEW: 'review',
-} as const;
+export type DragItemType = 'todo' | 'review';

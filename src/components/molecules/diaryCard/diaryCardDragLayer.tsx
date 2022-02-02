@@ -41,11 +41,15 @@ const getDragLayerStyles = (
   };
 };
 
-interface PropTypes {
-  parentWidth?: number;
-}
+type PropTypes = {
+  parentWidth: number;
+  today: Date;
+};
 
-export const DiaryCardDragLayer: FC<PropTypes> = ({ parentWidth = 0 }) => {
+export const DiaryCardDragLayer: FC<PropTypes> = ({
+  parentWidth = 0,
+  today,
+}) => {
   const { itemType, isDragging, item, initialOffset, currentOffset } =
     useDragLayer((monitor: DragLayerMonitor) => ({
       item: monitor.getItem(),
@@ -59,7 +63,7 @@ export const DiaryCardDragLayer: FC<PropTypes> = ({ parentWidth = 0 }) => {
     return null;
   }
 
-  const { startedAt, finishedAt } = item.item;
+  const { startedAt, finishedAt } = item;
   const height = getDiaryCardHeight(startedAt, finishedAt);
 
   return (
@@ -69,13 +73,13 @@ export const DiaryCardDragLayer: FC<PropTypes> = ({ parentWidth = 0 }) => {
       height={height}
     >
       <DiaryCard
-        left={1}
+        dragItemType="todo"
+        left={0}
         height={height}
         parentWidth={parentWidth}
         styleType="drag"
-        todo={item.item}
-        originalIndex={item.originalIndex}
-        today={item.today}
+        item={item}
+        today={today}
       />
     </StyledDragLayer>
   );

@@ -5,22 +5,29 @@ export type CreateUserInput = {
 };
 
 export type CreateTodoMutationInput = {
-  contents: string;
-  finishedAt: number;
-  startedAt: number;
+  contents?: string;
+  finishedAt?: number;
+  startedAt?: number;
 };
+
+export type CreateReviewMutationInput = CreateTodoMutationInput;
 
 export type UpdateTodoMutationInput = {
-  todoId: number;
+  id: number;
   contents?: string;
-  categoryId?: number;
-  todoPeriodId?: number;
-  isTime?: boolean;
-  startedAt?: Date;
-  endedAt?: Date;
+  startedAt?: number;
+  finishedAt?: number;
+  completedAt?: number;
 };
 
-export type TodosQueryInput = {
+export type UpdateReviewMutationInput = Omit<
+  UpdateTodoMutationInput,
+  'completedAt'
+>;
+
+export type GetTodosQueryInput = {
   endDate: number;
   startDate: number;
 };
+
+export type GetReviewsQueryInput = GetTodosQueryInput;

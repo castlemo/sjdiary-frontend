@@ -1,12 +1,12 @@
-import React, { FC, useCallback, useEffect, useRef, useState } from 'react';
+import { FC, useCallback, useEffect } from 'react';
 import { DragSourceMonitor, useDrag } from 'react-dnd';
 import { getEmptyImage } from 'react-dnd-html5-backend';
 import styled, { useTheme } from 'styled-components';
 
-import { DiaryCardTypes, THIRTY_MINUTES_TIME } from '../../../constant';
-import { TodoOutput } from '../../../graphQL/types';
+import { DragItemType, THIRTY_MINUTES_TIME } from '../../../constant';
+import { GetReviewOutput, GetTodoOutput } from '../../../graphQL/types';
 
-type StyleType = 'drag' | 'none';
+type StyleType = 'drag' | 'none' | 'timeLess';
 
 const StyledDiaryCard = styled.div<{
   styleType: StyleType;
@@ -16,7 +16,14 @@ const StyledDiaryCard = styled.div<{
   parentWidth: number;
   isDragging: boolean;
 }>`
-  position: ${({ styleType }) => (styleType === 'drag' ? null : 'absolute')};
+  position: ${({ styleType }) => {
+    switch (styleType) {
+      case 'none':
+        return 'absolute';
+      default:
+        return null;
+    }
+  }};
   top: ${({ top }) => top}px;
   left: ${({ left }) => left}px;
 
@@ -39,25 +46,25 @@ const StyledDiaryCard = styled.div<{
 `;
 
 type PropTypes = {
+  dragItemType: DragItemType;
   styleType: StyleType;
-  todo: TodoOutput;
-  originalIndex: number;
+  item: GetTodoOutput | GetReviewOutput;
   parentWidth: number;
   height: number;
   today: Date;
   left: number;
-  isTimeUndecided?: boolean;
+  originalIndex?: number;
 };
 
 export const DiaryCard: FC<PropTypes> = ({
+  dragItemType,
   styleType,
-  todo,
-  originalIndex,
+  item: todo,
+  originalIndex = 0,
   parentWidth,
   today,
   height,
   left,
-  isTimeUndecided = false,
 }): JSX.Element => {
   const theme = useTheme();
 
@@ -81,9 +88,8 @@ export const DiaryCard: FC<PropTypes> = ({
 
   const getTop = useCallback(
     (startedAt?: number, finishedAt?: number): number => {
-      let top = isTimeUndecided ? 180 : 0;
       if (!startedAt || !finishedAt) {
-        return top + 60 + originalIndex * 30;
+        return 60 + originalIndex * 30;
       }
 
       const year = today.getFullYear();
@@ -92,7 +98,8 @@ export const DiaryCard: FC<PropTypes> = ({
 
       const zeroTimeToday = +new Date(year, month, date, 0, 0, 0);
 
-      top += Math.floor((startedAt - zeroTimeToday) / THIRTY_MINUTES_TIME) * 30;
+      const top =
+        Math.floor((startedAt - zeroTimeToday) / THIRTY_MINUTES_TIME) * 30;
 
       return top;
     },
@@ -106,11 +113,9 @@ export const DiaryCard: FC<PropTypes> = ({
   const top = getTop(startedAt, finishedAt);
 
   const [{ isDragging }, drag, dragPreview] = useDrag({
-    type: DiaryCardTypes.TODO,
+    type: dragItemType,
     item: () => ({
-      item: { ...todo },
-      originalIndex,
-      today,
+      ...todo,
     }),
     collect: (monitor: DragSourceMonitor) => ({
       isDragging: monitor.isDragging(),

@@ -1,9 +1,11 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useDrag } from 'react-dnd';
+import { getEmptyImage } from 'react-dnd-html5-backend';
 import styled, { useTheme } from 'styled-components';
 
-import { CONTENTS_MAX_LENGTH } from '../../../constant';
+import { CONTENTS_MAX_LENGTH, DragItemType } from '../../../constant';
 
-const StyledDiaryCreateCard = styled.div`
+const StyledDiaryCreateCardWrapper = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -20,20 +22,57 @@ const StyledDiaryCreateCard = styled.div`
 `;
 
 type PropTypes = {
-  contents: string;
   inputPlaceHolder: string;
-  setContents: (value: string) => void;
+  dragItemType: DragItemType;
 };
 
 export const DiaryCreateCard = ({
-  contents = '',
-  inputPlaceHolder = '',
-  setContents = () => {},
+  inputPlaceHolder,
+  dragItemType,
 }: PropTypes) => {
   const theme = useTheme();
 
+  const [contents, setContents] = useState('');
+
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  const onChangeContentsInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    setContents(value);
+  };
+
+  const canDarg = useCallback(() => {
+    const isCanDarg = contents.length > 0;
+
+    if (!isCanDarg) {
+      const msg =
+        dragItemType === 'todo'
+          ? '할일을 입력해주세요'
+          : '했던 일을 입력해주세요';
+      alert(msg);
+    }
+
+    return isCanDarg;
+  }, [contents]);
+
+  const [, drag, dragPreview] = useDrag({
+    type: dragItemType,
+    item: () => ({
+      contents,
+    }),
+    canDrag: canDarg,
+  });
+
+  useEffect(() => {
+    dragPreview(getEmptyImage(), { captureDraggingState: true });
+  }, [dragPreview]);
+
+  useEffect(() => {
+    drag(wrapperRef);
+  }, [wrapperRef]);
+
   return (
-    <StyledDiaryCreateCard>
+    <StyledDiaryCreateCardWrapper ref={wrapperRef}>
       <input
         style={{
           width: '90%',
@@ -46,10 +85,7 @@ export const DiaryCreateCard = ({
         maxLength={CONTENTS_MAX_LENGTH}
         type="text"
         value={contents}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-          const { target } = e;
-          setContents(target.value);
-        }}
+        onChange={onChangeContentsInput}
         placeholder={inputPlaceHolder}
       />
       <span
@@ -63,6 +99,6 @@ export const DiaryCreateCard = ({
       >
         드래그해서 시간을 설정해주세요.
       </span>
-    </StyledDiaryCreateCard>
+    </StyledDiaryCreateCardWrapper>
   );
 };
