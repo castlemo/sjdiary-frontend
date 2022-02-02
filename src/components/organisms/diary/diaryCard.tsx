@@ -43,6 +43,8 @@ const StyledDiaryCard = styled.div<{
   padding: 0px 0px 0px 20px;
 
   z-index: ${({ isDragging }) => (isDragging ? 1000 : undefined)};
+
+  cursor: move;
 `;
 
 type PropTypes = {
@@ -54,6 +56,7 @@ type PropTypes = {
   today: Date;
   left: number;
   originalIndex?: number;
+  setIsCanDrop: (v: boolean) => void;
 };
 
 export const DiaryCard: FC<PropTypes> = ({
@@ -65,6 +68,7 @@ export const DiaryCard: FC<PropTypes> = ({
   today,
   height,
   left,
+  setIsCanDrop,
 }): JSX.Element => {
   const theme = useTheme();
 
@@ -112,7 +116,7 @@ export const DiaryCard: FC<PropTypes> = ({
 
   const top = getTop(startedAt, finishedAt);
 
-  const [{ isDragging }, drag, dragPreview] = useDrag({
+  const [{ isDragging }, drag] = useDrag({
     type: dragItemType,
     item: () => ({
       ...todo,
@@ -122,9 +126,9 @@ export const DiaryCard: FC<PropTypes> = ({
     }),
   });
 
-  useEffect(() => {
-    dragPreview(getEmptyImage(), { captureDraggingState: true });
-  }, [dragPreview]);
+  // useEffect(() => {
+  // dragPreview(getEmptyImage(), { captureDraggingState: true });
+  // }, [dragPreview]);
 
   return (
     <StyledDiaryCard
@@ -135,6 +139,12 @@ export const DiaryCard: FC<PropTypes> = ({
       ref={drag}
       parentWidth={parentWidth ?? 0}
       isDragging={isDragging}
+      onDragOver={() => {
+        setIsCanDrop(false);
+      }}
+      onDragLeave={() => {
+        setIsCanDrop(true);
+      }}
     >
       <span
         style={{

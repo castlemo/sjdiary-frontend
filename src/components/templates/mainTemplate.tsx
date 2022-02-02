@@ -157,6 +157,8 @@ export const MainTemplate: FC<PropTypes> = ({
 
   const nowHour = today.getHours();
 
+  const [isCanDrop, setIsCanDrop] = useState(true);
+
   const todoTitleRef = useRef<HTMLDivElement>(null);
   const timeTitleRef = useRef<HTMLDivElement>(null);
   const diaryContainerRef = useRef<HTMLDivElement>(null);
@@ -189,16 +191,21 @@ export const MainTemplate: FC<PropTypes> = ({
 
     const calcY = calcCurrentY + calcScrollTop - calcDiaryContainerStartedY;
 
-    const startTime =
-      todayZeroHourTimestamp + Math.floor(calcY / 30) * THIRTY_MINUTES_TIME;
+    let startTime = todayZeroHourTimestamp;
+
+    if (calcY < 0) {
+      return startTime;
+    }
+
+    startTime += Math.floor(calcY / 30) * THIRTY_MINUTES_TIME;
 
     return startTime;
   };
 
   const [, todoDrop] = useDrop({
     accept: 'todo',
+    canDrop: () => isCanDrop,
     drop(item: GetTodoOutput & { id?: number }, monitor: DropTargetMonitor) {
-      console.log('====todo-drop====');
       const currentOffset = monitor.getSourceClientOffset() as {
         x: number;
         y: number;
@@ -206,37 +213,33 @@ export const MainTemplate: FC<PropTypes> = ({
 
       const startedAt = getNewStartedAt(currentOffset.y);
 
-      if (true) {
-        if (item.id) {
-          let finishedAt = startedAt;
-          if (item.startedAt && item.finishedAt) {
-            finishedAt += item.finishedAt - item.startedAt;
-          } else {
-            finishedAt += 1000 * 60 * 60;
-          }
-          updateTodo({
-            id: item.id,
-            startedAt,
-            finishedAt,
-          });
+      if (item.id) {
+        let finishedAt = startedAt;
+        if (item.startedAt && item.finishedAt) {
+          finishedAt += item.finishedAt - item.startedAt;
         } else {
-          const finishedAt = startedAt + 1000 * 60 * 60;
-          createTodo({
-            contents: item.contents,
-            startedAt,
-            finishedAt,
-          });
+          finishedAt += 1000 * 60 * 60;
         }
+        updateTodo({
+          id: item.id,
+          startedAt,
+          finishedAt,
+        });
       } else {
-        alert('no over');
+        const finishedAt = startedAt + 1000 * 60 * 60;
+        createTodo({
+          contents: item.contents,
+          startedAt,
+          finishedAt,
+        });
       }
     },
   });
 
   const [, reviewDrop] = useDrop({
     accept: 'review',
+    canDrop: () => isCanDrop,
     drop(item: GetReviewOutput & { id?: number }, monitor: DropTargetMonitor) {
-      console.log('====review-drop====');
       const currentOffset = monitor.getSourceClientOffset() as {
         x: number;
         y: number;
@@ -244,31 +247,25 @@ export const MainTemplate: FC<PropTypes> = ({
 
       const startedAt = getNewStartedAt(currentOffset.y);
 
-      console.log({ startedAt });
-
-      if (true) {
-        if (item.id) {
-          let finishedAt = startedAt;
-          if (item.startedAt && item.finishedAt) {
-            finishedAt += item.finishedAt - item.startedAt;
-          } else {
-            finishedAt += 1000 * 60 * 60;
-          }
-          updateReview({
-            id: Number(item.id),
-            startedAt,
-            finishedAt,
-          });
+      if (item.id) {
+        let finishedAt = startedAt;
+        if (item.startedAt && item.finishedAt) {
+          finishedAt += item.finishedAt - item.startedAt;
         } else {
-          const finishedAt = startedAt + 1000 * 60 * 60;
-          createReview({
-            contents: item.contents,
-            startedAt,
-            finishedAt,
-          });
+          finishedAt += 1000 * 60 * 60;
         }
+        updateReview({
+          id: Number(item.id),
+          startedAt,
+          finishedAt,
+        });
       } else {
-        alert('no over');
+        const finishedAt = startedAt + 1000 * 60 * 60;
+        createReview({
+          contents: item.contents,
+          startedAt,
+          finishedAt,
+        });
       }
 
       console.log({
@@ -351,6 +348,7 @@ export const MainTemplate: FC<PropTypes> = ({
                     styleType="timeLess"
                     originalIndex={i}
                     today={today}
+                    setIsCanDrop={setIsCanDrop}
                   />
                 );
               })}
@@ -383,6 +381,7 @@ export const MainTemplate: FC<PropTypes> = ({
                     styleType="timeLess"
                     originalIndex={i}
                     today={today}
+                    setIsCanDrop={setIsCanDrop}
                   />
                 );
               })}
@@ -425,6 +424,7 @@ export const MainTemplate: FC<PropTypes> = ({
                 styleType="none"
                 originalIndex={i}
                 today={today}
+                setIsCanDrop={setIsCanDrop}
               />
             );
           })}
@@ -443,6 +443,7 @@ export const MainTemplate: FC<PropTypes> = ({
                 styleType="none"
                 originalIndex={i}
                 today={today}
+                setIsCanDrop={setIsCanDrop}
               />
             );
           })}

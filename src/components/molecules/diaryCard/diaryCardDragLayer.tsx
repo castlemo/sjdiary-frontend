@@ -73,6 +73,10 @@ export const DiaryCardDragLayer: FC<PropTypes> = ({
       height={height}
     >
       <DiaryCard
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        setIsCanDrop={() => {
+          console.log('setIsCanDrop???');
+        }}
         dragItemType="todo"
         left={0}
         height={height}
