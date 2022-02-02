@@ -29,16 +29,11 @@ const StyledCalendarItem = styled.div<{ isToday: boolean }>`
 `;
 
 type PropTypes = {
-  dataMe?: GetMeOutput;
   today: Date;
   setToday: React.Dispatch<React.SetStateAction<Date>>;
 };
 
-export const WeekCalendar = ({
-  dataMe,
-  today = new Date(),
-  setToday,
-}: PropTypes) => {
+export const WeekCalendar = ({ today, setToday }: PropTypes) => {
   const dates = useMemo(() => {
     let startOfWeekDate: Date;
 

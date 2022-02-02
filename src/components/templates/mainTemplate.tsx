@@ -4,17 +4,25 @@ import styled, { useTheme } from 'styled-components';
 
 import { THIRTY_MINUTES_TIME } from '../../constant';
 import {
+  CreateReviewMutationInput,
+  CreateTodoMutationInput,
   GetMeOutput,
   GetReviewOutput,
   GetReviewsOutput,
   GetTodoOutput,
   GetTodosOutput,
+  UpdateReviewMutationInput,
+  UpdateTodoMutationInput,
 } from '../../graphQL/types';
 import { useWindowSize } from '../../hooks';
 import { getDiaryCardHeight } from '../../utils';
 import { DiaryCardDragLayer } from '../molecules';
-import { DiaryCard, DiaryCreateCard, MainHeader } from '../organisms';
-import { WeekCalendar } from '../organisms/calendar';
+import {
+  DiaryCard,
+  DiaryCreateCard,
+  MainHeader,
+  WeekCalendar,
+} from '../organisms';
 
 const StyledMainTemplate = styled.div`
   width: 100%;
@@ -99,15 +107,11 @@ const StyledDiaryTitle = styled.div<{ isEmpty: boolean }>`
   box-sizing: border-box;
 `;
 
-const StyledTimeUndecidedContainer = styled.div<{ width: number }>`
-  position: fixed;
+const StyledTimeUndecidedContainer = styled.div`
+  width: 100%;
 
-  width: ${({ width }) => width}px;
-  min-height: 180px;
-
-  background-color: ${({ theme }) => theme.colors.black2};
-
-  z-index: 1;
+  display: flex;
+  flex-direction: row;
 `;
 
 const StyledTimeUndecided = styled.div<{
@@ -125,25 +129,16 @@ const StyledTimeUndecided = styled.div<{
   color: ${({ theme }) => theme.colors.purple1};
 `;
 
-const StyledDiaryCreateCardContainer = styled.div<{
-  width: number;
-  left: number;
-}>`
-  width: ${({ width }) => width}px;
-  height: ${({ theme }) => theme.sizes.diaryCardHeight}px;
-
-  display: flex;
-  flex-direction: row;
-
-  /* left: ${({ left }) => left}px; */
-`;
-
 type PropTypes = {
   dataMe?: GetMeOutput;
   today: Date;
   dataTodos?: GetTodosOutput;
   dataReviews?: GetReviewsOutput;
   setToday: React.Dispatch<React.SetStateAction<Date>>;
+  createTodo: (input: CreateTodoMutationInput) => void;
+  createReview: (input: CreateReviewMutationInput) => void;
+  updateTodo: (input: UpdateTodoMutationInput) => void;
+  updateReview: (input: UpdateReviewMutationInput) => void;
 };
 
 export const MainTemplate: FC<PropTypes> = ({
@@ -152,6 +147,10 @@ export const MainTemplate: FC<PropTypes> = ({
   dataTodos,
   dataReviews,
   setToday,
+  createTodo,
+  createReview,
+  updateTodo,
+  updateReview,
 }): JSX.Element => {
   const theme = useTheme();
   const windowSize = useWindowSize();
@@ -192,7 +191,6 @@ export const MainTemplate: FC<PropTypes> = ({
 
     const startTime =
       todayZeroHourTimestamp + Math.floor(calcY / 30) * THIRTY_MINUTES_TIME;
-    const finishTime = 0;
 
     return startTime;
   };
@@ -208,16 +206,30 @@ export const MainTemplate: FC<PropTypes> = ({
 
       const startedAt = getNewStartedAt(currentOffset.y);
 
-      if (item.id) {
-        console.log({ ...item });
+      if (true) {
+        if (item.id) {
+          let finishedAt = startedAt;
+          if (item.startedAt && item.finishedAt) {
+            finishedAt += item.finishedAt - item.startedAt;
+          } else {
+            finishedAt += 1000 * 60 * 60;
+          }
+          updateTodo({
+            id: item.id,
+            startedAt,
+            finishedAt,
+          });
+        } else {
+          const finishedAt = startedAt + 1000 * 60 * 60;
+          createTodo({
+            contents: item.contents,
+            startedAt,
+            finishedAt,
+          });
+        }
       } else {
-        console.log({ ...item });
+        alert('no over');
       }
-
-      console.log({
-        start: new Date(startedAt),
-        finish: new Date(0),
-      });
     },
   });
 
@@ -232,10 +244,31 @@ export const MainTemplate: FC<PropTypes> = ({
 
       const startedAt = getNewStartedAt(currentOffset.y);
 
-      if (item.id) {
-        console.log({ ...item });
+      console.log({ startedAt });
+
+      if (true) {
+        if (item.id) {
+          let finishedAt = startedAt;
+          if (item.startedAt && item.finishedAt) {
+            finishedAt += item.finishedAt - item.startedAt;
+          } else {
+            finishedAt += 1000 * 60 * 60;
+          }
+          updateReview({
+            id: Number(item.id),
+            startedAt,
+            finishedAt,
+          });
+        } else {
+          const finishedAt = startedAt + 1000 * 60 * 60;
+          createReview({
+            contents: item.contents,
+            startedAt,
+            finishedAt,
+          });
+        }
       } else {
-        console.log({ ...item });
+        alert('no over');
       }
 
       console.log({
@@ -273,7 +306,7 @@ export const MainTemplate: FC<PropTypes> = ({
     <StyledMainTemplate>
       <MainHeader dataMe={dataMe} today={today} setToday={setToday} />
       <StyledBody>
-        <WeekCalendar dataMe={dataMe} today={today} setToday={setToday} />
+        <WeekCalendar today={today} setToday={setToday} />
         <StyledDiaryTitleContainer>
           <StyledDiaryTitle isEmpty ref={timeTitleRef} />
           <StyledDiaryTitle isEmpty={false} ref={todoTitleRef}>
@@ -283,13 +316,7 @@ export const MainTemplate: FC<PropTypes> = ({
             오늘은 이렇게 보내고 싶어요
           </StyledDiaryTitle>
         </StyledDiaryTitleContainer>
-        <div
-          style={{
-            width: '100%',
-            display: 'flex',
-            flexDirection: 'row',
-          }}
-        >
+        <StyledTimeUndecidedContainer>
           <StyledTimeUndecided
             width={timeCardWidth}
             isTimeUndecidedTodos={isTimeUndecidedTodos}
@@ -306,6 +333,7 @@ export const MainTemplate: FC<PropTypes> = ({
             <DiaryCreateCard
               dragItemType="todo"
               inputPlaceHolder="예정된 할일을 입력해주세요."
+              createDiary={createTodo}
             />
             {isTimeUndecidedTodos &&
               dataTodos?.timeUndecidedTodos.map((todo, i) => {
@@ -314,7 +342,7 @@ export const MainTemplate: FC<PropTypes> = ({
 
                 return (
                   <DiaryCard
-                    dragItemType="review"
+                    dragItemType="todo"
                     item={todo}
                     height={height}
                     parentWidth={diaryCardWidth}
@@ -337,6 +365,7 @@ export const MainTemplate: FC<PropTypes> = ({
             <DiaryCreateCard
               dragItemType="review"
               inputPlaceHolder="오늘 했던 일을 입력해주세요."
+              createDiary={createReview}
             />
             {isTimeUndecidedTodos &&
               dataReviews?.timeUndecidedReviews.map((review, i) => {
@@ -358,7 +387,7 @@ export const MainTemplate: FC<PropTypes> = ({
                 );
               })}
           </div>
-        </div>
+        </StyledTimeUndecidedContainer>
         <StyledDiaryContainer
           ref={diaryContainerRef}
           onScroll={(e: React.UIEvent<HTMLDivElement, UIEvent>) => {

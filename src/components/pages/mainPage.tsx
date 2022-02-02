@@ -4,6 +4,8 @@ import {
   useCreateReviewMutation,
   useCreateTodoMutation,
   useCreateUserMutation,
+  useUpdateReviewMutation,
+  useUpdateTodoMutation,
 } from '../../graphQL/mutations';
 import {
   useGetMeQuery,
@@ -43,64 +45,45 @@ export const MainPage = (): JSX.Element => {
     };
   }, [today]);
 
-  const {
-    data: dataMe,
-    loading: isLoadingGetMe,
-    error: errorGetMe,
-  } = useGetMeQuery();
+  const { data: dataMe, loading: isLoadingGetMe } = useGetMeQuery();
 
-  const {
-    data: dataTodos,
-    loading: isLoadingGetTodos,
-    error: errorGetTodos,
-  } = useGetTodosQuery({ startDate, endDate });
+  const { data: dataTodos, loading: isLoadingGetTodos } = useGetTodosQuery({
+    startDate,
+    endDate,
+  });
 
-  const {
-    data: dataReviews,
-    loading: isLoadingGetReviews,
-    error: errorGetReviews,
-  } = useGetReviewsQuery({ startDate, endDate });
+  const { data: dataReviews, loading: isLoadingGetReviews } =
+    useGetReviewsQuery({ startDate, endDate });
 
-  const {
-    createTodo,
-    loading: isLoadingCreateTodo,
-    error: errorCreateTodo,
-  } = useCreateTodoMutation({ startDate, endDate });
+  const { createTodo, loading: isLoadingCreateTodo } = useCreateTodoMutation({
+    startDate,
+    endDate,
+  });
 
-  const {
-    createReview,
-    loading: isLoadingCreateReview,
-    error: errorCreateReview,
-  } = useCreateReviewMutation({ startDate, endDate });
+  const { createReview, loading: isLoadingCreateReview } =
+    useCreateReviewMutation({ startDate, endDate });
+
+  const { updateTodo, loading: isLoadingUpdateTodo } = useUpdateTodoMutation({
+    startDate,
+    endDate,
+  });
+  const { updateReview, loading: isLoadingUpdateReview } =
+    useUpdateReviewMutation({
+      startDate,
+      endDate,
+    });
 
   const isLoading =
     isLoadingGetMe ||
     isLoadingGetTodos ||
     isLoadingGetReviews ||
     isLoadingCreateTodo ||
-    isLoadingCreateReview;
-
-  const isError =
-    errorGetMe ||
-    errorGetTodos ||
-    errorGetReviews ||
-    errorCreateTodo ||
-    errorCreateReview;
+    isLoadingCreateReview ||
+    isLoadingUpdateTodo ||
+    isLoadingUpdateReview;
 
   if (isLoading) {
     return <LoadingTemplate />;
-  }
-
-  if (isError) {
-    alert('error');
-    console.log(
-      errorGetMe ||
-        errorGetTodos ||
-        errorGetReviews ||
-        errorCreateTodo ||
-        errorCreateReview ||
-        '???',
-    );
   }
 
   return (
@@ -110,6 +93,10 @@ export const MainPage = (): JSX.Element => {
       dataReviews={dataReviews}
       today={today}
       setToday={setToday}
+      createTodo={createTodo}
+      createReview={createReview}
+      updateTodo={updateTodo}
+      updateReview={updateReview}
     />
   );
 };

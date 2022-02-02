@@ -4,6 +4,10 @@ import { getEmptyImage } from 'react-dnd-html5-backend';
 import styled, { useTheme } from 'styled-components';
 
 import { CONTENTS_MAX_LENGTH, DragItemType } from '../../../constant';
+import {
+  CreateReviewMutationInput,
+  CreateTodoMutationInput,
+} from '../../../graphQL/types';
 
 const StyledDiaryCreateCardWrapper = styled.div`
   display: flex;
@@ -24,17 +28,29 @@ const StyledDiaryCreateCardWrapper = styled.div`
 type PropTypes = {
   inputPlaceHolder: string;
   dragItemType: DragItemType;
+  createDiary: (
+    input: CreateTodoMutationInput | CreateReviewMutationInput,
+  ) => void;
 };
 
 export const DiaryCreateCard = ({
   inputPlaceHolder,
   dragItemType,
+  createDiary,
 }: PropTypes) => {
   const theme = useTheme();
 
   const [contents, setContents] = useState('');
 
   const wrapperRef = useRef<HTMLDivElement>(null);
+
+  const onEnterPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && 0 < contents.length) {
+      createDiary({
+        contents,
+      });
+    }
+  };
 
   const onChangeContentsInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
@@ -87,6 +103,7 @@ export const DiaryCreateCard = ({
         value={contents}
         onChange={onChangeContentsInput}
         placeholder={inputPlaceHolder}
+        onKeyPress={onEnterPress}
       />
       <span
         style={{

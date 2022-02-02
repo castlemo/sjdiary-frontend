@@ -1,4 +1,4 @@
-import { ApolloError, DocumentNode, gql, useMutation } from '@apollo/client';
+import { ApolloError, gql, useMutation } from '@apollo/client';
 
 import { GET_TODOS } from '../queries';
 import { CreateTodoMutationInput } from '../types';
@@ -42,11 +42,15 @@ export const useCreateTodoMutation = (
           },
         },
       ],
+      onError: (err) => {
+        console.log('createTodoMutation');
+        console.log(err.message);
+      },
     },
   );
 
-  const createTodo = async (input: CreateTodoMutationInput) => {
-    await createTodoMutation({
+  const createTodo = (input: CreateTodoMutationInput) => {
+    createTodoMutation({
       variables: {
         input,
       },
