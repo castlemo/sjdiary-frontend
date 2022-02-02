@@ -4,21 +4,18 @@
         "jest": true,
         "browser": true,
         "es6": true
-      },
+    },
     "parser": "@typescript-eslint/parser", // typescript를 linting 할 수 있게 만들어줌
     "extends": [
-        // airbnb 플러그인 적용
-        "airbnb",
-        "airbnb-typescript",
-        // -----------------
-        // eslint-config-prettier의 메인 설정을 활성화하며, prettier와 충돌하는 ESLint 코어 룰을 비활성화한다.
         "prettier",
         // -----------------
         "plugin:react/recommended",
         "plugin:@typescript-eslint/recommended",
         // eslint-config-prettier, eslint-plugin-prettier 설정을 적용하기 위한 셋팅. 반드시 마지막 익스텐션 순서로 넣어주어야 한다.
-        "plugin:prettier/recommended"
+        "plugin:prettier/recommended",
         // -----------------
+        "plugin:import/errors",
+        "plugin:import/typescript"
     ],
     "plugins": [
         "prettier",
@@ -56,21 +53,28 @@
         "sort-imports": [
             "warn",
             {
-              "ignoreCase": true,
-              "ignoreDeclarationSort": true,
-              "ignoreMemberSort": false,
-              "memberSyntaxSortOrder": ["none", "all", "multiple", "single"], // ? basically meaningless. "import/order"
-              "allowSeparatedGroups": true
+                "ignoreCase": true,
+                "ignoreDeclarationSort": true,
+                "ignoreMemberSort": false,
+                "memberSyntaxSortOrder": ["none", "all", "multiple", "single"], // ? basically meaningless. "import/order"
+                "allowSeparatedGroups": true
             }
-          ],
-          "import/order": [
-            "warn",
+        ],
+        "import/order": [
+            "error",
             {
-              "newlines-between": "always",
-              "alphabetize": { "order": "asc" },
-              "groups": ["builtin", "external", "parent", "sibling", "index"]
+                "groups": ["builtin", "external", "parent", "sibling", "index"],
+                "pathGroups": [
+                    {
+                        "pattern": "react",
+                        "group": "external",
+                        "position": "before"
+                    }
+                ],
+                "newlines-between": "always",
+                "alphabetize": { "order": "asc" }
             }
-          ],
+        ]
     },
     "ignorePatterns": [
         "dist/",
