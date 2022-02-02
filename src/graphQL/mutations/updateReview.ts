@@ -52,7 +52,6 @@ export const useUpdateReviewMutation = (
   });
 
   const updateReview = (input: UpdateReviewMutationInput) => {
-    console.log({ input });
     updateReviewMutation({
       variables: {
         input,

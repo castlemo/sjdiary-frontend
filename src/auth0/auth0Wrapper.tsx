@@ -42,7 +42,6 @@ const auth0Context = createContext<Auth0Context>({
   signIn: (): Promise<void> => Promise.resolve(),
   signOut: () => {
     // TODO: 삭제 대기
-    console.log('signOut');
   },
   getToken: (): Promise<string | undefined> => Promise.resolve(undefined),
   getAuth0UserProfile: (): Promise<Auth0UserProfile | undefined> =>
@@ -174,11 +173,9 @@ export const Auth0Wrapper = ({
 
       if (tokenExists && !tokenExpired) {
         // * if token exists and not expired yet, return token
-        console.log('getToken: returning existing token');
         return auth0UserData.accessToken;
       }
       // * if token already expired, call fetchToken and return the result
-      console.log('getToken: fetching new token');
 
       const { result } = await fetchToken();
       setAuth0UserData({
@@ -189,7 +186,6 @@ export const Auth0Wrapper = ({
       return result?.accessToken;
     }
 
-    console.log('auth0Client is not set');
     return undefined;
   }, [auth0UserData, auth0Client, fetchToken]);
 
@@ -212,7 +208,6 @@ export const Auth0Wrapper = ({
         return { profile, error };
       }
 
-      console.log('fetchUserProfile: auth0Client is not set, too bad :(');
       return { profile: undefined, error: { error: 'auth0Client is not set' } };
     },
     [auth0Client],
@@ -260,9 +255,12 @@ export const Auth0Wrapper = ({
         if (err) {
           console.error(err);
         }
-        console.log('============accessToken============');
-        console.log(result?.accessToken);
-        console.log('============accessToken============');
+
+        if (process.env.REACT_APP_MODE === 'local') {
+          console.log('============accessToken============');
+          console.log(result?.accessToken);
+          console.log('============accessToken============');
+        }
         if (result !== undefined) {
           setAuth0UserData({
             accessToken: result?.accessToken,

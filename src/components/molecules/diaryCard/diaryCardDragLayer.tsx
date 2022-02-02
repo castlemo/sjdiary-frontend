@@ -9,10 +9,14 @@ const StyledDragLayer = styled.div<{ parentWidth: number; height: number }>`
   position: fixed;
   pointer-events: none;
 
-  z-index: 100;
+  z-index: 10000;
 
   left: 0;
   top: 0;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
   width: ${({ parentWidth }) => parentWidth}px;
   height: ${({ height }) => height}px;
@@ -74,9 +78,7 @@ export const DiaryCardDragLayer: FC<PropTypes> = ({
     >
       <DiaryCard
         // eslint-disable-next-line @typescript-eslint/no-empty-function
-        setIsCanDrop={() => {
-          console.log('setIsCanDrop???');
-        }}
+        setIsCanDrop={() => {}}
         dragItemType="todo"
         left={0}
         height={height}

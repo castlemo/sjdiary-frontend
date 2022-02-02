@@ -8,7 +8,7 @@ import { GetReviewOutput, GetTodoOutput } from '../../../graphQL/types';
 
 type StyleType = 'drag' | 'none' | 'timeLess';
 
-const StyledDiaryCard = styled.div<{
+const StyledDiaryCardWrapper = styled.div<{
   styleType: StyleType;
   height: number;
   left: number;
@@ -40,11 +40,9 @@ const StyledDiaryCard = styled.div<{
   border: 0.5px solid ${({ theme }) => theme.colors.grey3};
   box-sizing: border-box;
 
-  padding: 0px 0px 0px 20px;
-
   z-index: ${({ isDragging }) => (isDragging ? 1000 : undefined)};
 
-  cursor: move;
+  cursor: ns-resize;
 `;
 
 type PropTypes = {
@@ -57,6 +55,7 @@ type PropTypes = {
   left: number;
   originalIndex?: number;
   setIsCanDrop: (v: boolean) => void;
+  is?: boolean;
 };
 
 export const DiaryCard: FC<PropTypes> = ({
@@ -116,7 +115,7 @@ export const DiaryCard: FC<PropTypes> = ({
 
   const top = getTop(startedAt, finishedAt);
 
-  const [{ isDragging }, drag] = useDrag({
+  const [{ isDragging }, drag, dragPreview] = useDrag({
     type: dragItemType,
     item: () => ({
       ...todo,
@@ -126,17 +125,16 @@ export const DiaryCard: FC<PropTypes> = ({
     }),
   });
 
-  // useEffect(() => {
-  // dragPreview(getEmptyImage(), { captureDraggingState: true });
-  // }, [dragPreview]);
+  useEffect(() => {
+    dragPreview(getEmptyImage(), { captureDraggingState: false });
+  }, [dragPreview]);
 
   return (
-    <StyledDiaryCard
+    <StyledDiaryCardWrapper
       styleType={styleType}
       height={height}
       top={top}
       left={left}
-      ref={drag}
       parentWidth={parentWidth ?? 0}
       isDragging={isDragging}
       onDragOver={() => {
@@ -146,12 +144,28 @@ export const DiaryCard: FC<PropTypes> = ({
         setIsCanDrop(true);
       }}
     >
+      {styleType === 'none' && (
+        <div
+          ref={drag}
+          style={{
+            position: 'absolute',
+            width: '90%',
+            height: height > 60 ? '90%' : '70%',
+            display: 'flex',
+            justifySelf: 'center',
+            alignSelf: 'center',
+            cursor: 'move',
+          }}
+        />
+      )}
+
       <span
         style={{
           width: '100%',
           height: 'auto',
           fontSize: 16,
           fontFamily: theme.fonts.spoqaHanSansNeo,
+          marginLeft: 20,
         }}
       >
         {todo.contents}
@@ -163,11 +177,12 @@ export const DiaryCard: FC<PropTypes> = ({
             height: 'auto',
             fontSize: 12,
             fontFamily: theme.fonts.spoqaHanSansNeo,
+            marginLeft: 20,
           }}
         >
           {startedStr} ~ {finishedStr}
         </span>
       )}
-    </StyledDiaryCard>
+    </StyledDiaryCardWrapper>
   );
 };

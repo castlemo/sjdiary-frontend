@@ -158,6 +158,7 @@ export const MainTemplate: FC<PropTypes> = ({
   const nowHour = today.getHours();
 
   const [isCanDrop, setIsCanDrop] = useState(true);
+  const [isScrollSave, setScrollSave] = useState(false);
 
   const todoTitleRef = useRef<HTMLDivElement>(null);
   const timeTitleRef = useRef<HTMLDivElement>(null);
@@ -233,6 +234,11 @@ export const MainTemplate: FC<PropTypes> = ({
           finishedAt,
         });
       }
+
+      console.log({
+        start: new Date(startedAt),
+        finish: new Date(0),
+      });
     },
   });
 
@@ -296,8 +302,23 @@ export const MainTemplate: FC<PropTypes> = ({
       const diaryContainerRect =
         diaryContainerRef.current.getBoundingClientRect();
       setDiaryContainerStartedY(diaryContainerRect.top);
+
+      const savedScrollTop = localStorage.getItem('scrollTop');
+      if (savedScrollTop) {
+        diaryContainerRef.current.scrollTo({
+          top: Number(savedScrollTop),
+          behavior: 'auto',
+        });
+      }
+      setScrollSave(true);
     }
-  }, [diaryContainerRef]);
+  }, [diaryContainerRef, windowSize]);
+
+  useEffect(() => {
+    if (isScrollSave) {
+      localStorage.setItem('scrollTop', String(scrollTop));
+    }
+  }, [scrollTop]);
 
   return (
     <StyledMainTemplate>
@@ -391,7 +412,9 @@ export const MainTemplate: FC<PropTypes> = ({
           ref={diaryContainerRef}
           onScroll={(e: React.UIEvent<HTMLDivElement, UIEvent>) => {
             const currentScrollTop = e.currentTarget.scrollTop;
-            setScrollTop(currentScrollTop);
+            if (isScrollSave) {
+              setScrollTop(currentScrollTop);
+            }
           }}
         >
           <DiaryCardDragLayer parentWidth={diaryCardWidth} today={today} />
