@@ -6,6 +6,7 @@
     "@apollo/client": "^3.4.15",
     "@auth0/auth0-react": "^1.6.0",
     "auth0-js": "^9.16.4",
+    "bowser": "^2.11.0",
     "graphql": "^16.2.0",
     "history": "^5.0.1",
     "immutable": "^4.0.0",

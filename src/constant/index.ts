@@ -11,3 +11,9 @@ export type DragType = 'todo' | 'review';
 export const THIRTY_MINUTES_TIME = 1800000;
 
 export type DragItemType = 'todo' | 'review';
+
+export enum Browser {
+  Firefox = 'Firefox',
+  Chrome = 'Chrome',
+  Safari = 'Safari',
+}

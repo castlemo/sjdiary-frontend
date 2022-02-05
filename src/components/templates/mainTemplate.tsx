@@ -2,7 +2,7 @@ import React, { FC, useEffect, useMemo, useRef, useState } from 'react';
 import { DropTargetMonitor, useDrop } from 'react-dnd';
 import styled, { useTheme } from 'styled-components';
 
-import { THIRTY_MINUTES_TIME } from '../../constant';
+import { Browser, THIRTY_MINUTES_TIME } from '../../constant';
 import {
   CreateReviewMutationInput,
   CreateTodoMutationInput,
@@ -14,7 +14,7 @@ import {
   UpdateReviewMutationInput,
   UpdateTodoMutationInput,
 } from '../../graphQL/types';
-import { useWindowSize } from '../../hooks';
+import { useBrowserInfo, useWindowSize } from '../../hooks';
 import { getDiaryCardHeight } from '../../utils';
 import { DiaryCardDragLayer } from '../molecules';
 import {
@@ -107,8 +107,12 @@ const StyledDiaryTitle = styled.div<{ isEmpty: boolean }>`
   box-sizing: border-box;
 `;
 
-const StyledTimeUndecidedContainer = styled.div`
+const StyledTimeUndecidedContainer = styled.div<{
+  isTimeUndecidedDiary: boolean;
+}>`
   width: 100%;
+  min-height: ${({ isTimeUndecidedDiary }) =>
+    isTimeUndecidedDiary ? 180 : 0}px;
 
   display: flex;
   flex-direction: row;
@@ -116,11 +120,9 @@ const StyledTimeUndecidedContainer = styled.div`
 
 const StyledTimeUndecided = styled.div<{
   width: number;
-  isTimeUndecidedTodos: boolean | undefined;
 }>`
   min-width: ${({ width }) => width}px;
-  min-height: ${({ isTimeUndecidedTodos }) =>
-    isTimeUndecidedTodos ? 180 : 0}px;
+  height: 100%;
 
   display: flex;
   justify-content: center;
@@ -154,6 +156,7 @@ export const MainTemplate: FC<PropTypes> = ({
 }): JSX.Element => {
   const theme = useTheme();
   const windowSize = useWindowSize();
+  const { browser } = useBrowserInfo();
 
   const nowHour = today.getHours();
 
@@ -172,9 +175,19 @@ export const MainTemplate: FC<PropTypes> = ({
   const isTimeUndecidedTodos = useMemo(
     () =>
       (dataTodos?.timeUndecidedTodos &&
-        dataTodos.timeUndecidedTodos.length > 0) ||
+        dataTodos.timeUndecidedTodos.length > 0) ??
+      false,
+    [dataTodos],
+  );
+  const isTimeUndecidedReviews = useMemo(
+    () =>
       (dataReviews?.timeUndecidedReviews &&
-        dataReviews.timeUndecidedReviews.length > 0),
+        dataReviews.timeUndecidedReviews.length > 0) ??
+      false,
+    [dataReviews],
+  );
+  const isTimeUndecidedDiary = useMemo(
+    () => isTimeUndecidedTodos || isTimeUndecidedReviews,
     [dataTodos, dataReviews],
   );
 
@@ -214,12 +227,14 @@ export const MainTemplate: FC<PropTypes> = ({
 
       const startedAt = getNewStartedAt(currentOffset.y);
 
-      if (item.id) {
+      if (startedAt === item.startedAt) {
+        return;
+      } else if (item.id) {
         let finishedAt = startedAt;
         if (item.startedAt && item.finishedAt) {
           finishedAt += item.finishedAt - item.startedAt;
         } else {
-          finishedAt += 1000 * 60 * 60;
+          finishedAt += THIRTY_MINUTES_TIME;
         }
         updateTodo({
           id: item.id,
@@ -227,7 +242,7 @@ export const MainTemplate: FC<PropTypes> = ({
           finishedAt,
         });
       } else {
-        const finishedAt = startedAt + 1000 * 60 * 60;
+        const finishedAt = startedAt + THIRTY_MINUTES_TIME;
         createTodo({
           contents: item.contents,
           startedAt,
@@ -253,12 +268,14 @@ export const MainTemplate: FC<PropTypes> = ({
 
       const startedAt = getNewStartedAt(currentOffset.y);
 
-      if (item.id) {
+      if (startedAt === item.startedAt) {
+        return;
+      } else if (item.id) {
         let finishedAt = startedAt;
         if (item.startedAt && item.finishedAt) {
           finishedAt += item.finishedAt - item.startedAt;
         } else {
-          finishedAt += 1000 * 60 * 60;
+          finishedAt += THIRTY_MINUTES_TIME;
         }
         updateReview({
           id: Number(item.id),
@@ -266,7 +283,7 @@ export const MainTemplate: FC<PropTypes> = ({
           finishedAt,
         });
       } else {
-        const finishedAt = startedAt + 1000 * 60 * 60;
+        const finishedAt = startedAt + THIRTY_MINUTES_TIME;
         createReview({
           contents: item.contents,
           startedAt,
@@ -334,12 +351,11 @@ export const MainTemplate: FC<PropTypes> = ({
             오늘은 이렇게 보내고 싶어요
           </StyledDiaryTitle>
         </StyledDiaryTitleContainer>
-        <StyledTimeUndecidedContainer>
-          <StyledTimeUndecided
-            width={timeCardWidth}
-            isTimeUndecidedTodos={isTimeUndecidedTodos}
-          >
-            {isTimeUndecidedTodos ? '시간 미정' : ''}
+        <StyledTimeUndecidedContainer
+          isTimeUndecidedDiary={isTimeUndecidedDiary}
+        >
+          <StyledTimeUndecided width={timeCardWidth}>
+            {isTimeUndecidedDiary ? '시간 미정' : ''}
           </StyledTimeUndecided>
           <div
             style={{
@@ -386,7 +402,7 @@ export const MainTemplate: FC<PropTypes> = ({
               inputPlaceHolder="오늘 했던 일을 입력해주세요."
               createDiary={createReview}
             />
-            {isTimeUndecidedTodos &&
+            {isTimeUndecidedReviews &&
               dataReviews?.timeUndecidedReviews.map((review, i) => {
                 const { startedAt, finishedAt } = review;
                 const height = getDiaryCardHeight(startedAt, finishedAt);
@@ -417,7 +433,9 @@ export const MainTemplate: FC<PropTypes> = ({
             }
           }}
         >
-          <DiaryCardDragLayer parentWidth={diaryCardWidth} today={today} />
+          {browser.name === Browser.Firefox && (
+            <DiaryCardDragLayer parentWidth={diaryCardWidth} today={today} />
+          )}
           {[...new Array(24).keys()].map((hour, i) => {
             const top = i * 60;
 

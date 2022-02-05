@@ -1,10 +1,11 @@
-import { FC, useCallback, useEffect } from 'react';
+import { FC, useCallback, useEffect, useRef } from 'react';
 import { DragSourceMonitor, useDrag } from 'react-dnd';
 import { getEmptyImage } from 'react-dnd-html5-backend';
 import styled, { useTheme } from 'styled-components';
 
-import { DragItemType, THIRTY_MINUTES_TIME } from '../../../constant';
+import { Browser, DragItemType, THIRTY_MINUTES_TIME } from '../../../constant';
 import { GetReviewOutput, GetTodoOutput } from '../../../graphQL/types';
+import { useBrowserInfo } from '../../../hooks';
 
 type StyleType = 'drag' | 'none' | 'timeLess';
 
@@ -36,11 +37,10 @@ const StyledDiaryCardWrapper = styled.div<{
   align-content: center;
 
   color: ${({ theme }) => theme.colors.purple1};
+  background-color: ${({ theme }) => theme.colors.black2};
 
   border: 0.5px solid ${({ theme }) => theme.colors.grey3};
   box-sizing: border-box;
-
-  z-index: ${({ isDragging }) => (isDragging ? 1000 : undefined)};
 
   cursor: ns-resize;
 `;
@@ -70,6 +70,9 @@ export const DiaryCard: FC<PropTypes> = ({
   setIsCanDrop,
 }): JSX.Element => {
   const theme = useTheme();
+  const { browser } = useBrowserInfo();
+
+  const diaryCardRef = useRef<HTMLDivElement>(null);
 
   const timeToString = (timestamp?: number) => {
     if (!timestamp) {
@@ -126,8 +129,13 @@ export const DiaryCard: FC<PropTypes> = ({
   });
 
   useEffect(() => {
-    dragPreview(getEmptyImage(), { captureDraggingState: false });
-  }, [dragPreview]);
+    if (diaryCardRef.current) {
+      dragPreview(diaryCardRef);
+      if (browser.name === Browser.Firefox) {
+        dragPreview(getEmptyImage(), { captureDraggingState: true });
+      }
+    }
+  }, [diaryCardRef]);
 
   return (
     <StyledDiaryCardWrapper
@@ -143,25 +151,24 @@ export const DiaryCard: FC<PropTypes> = ({
       onDragLeave={() => {
         setIsCanDrop(true);
       }}
+      ref={diaryCardRef}
     >
-      {styleType === 'none' && (
-        <div
-          ref={drag}
-          style={{
-            position: 'absolute',
-            width: '90%',
-            height: height > 60 ? '90%' : '70%',
-            display: 'flex',
-            justifySelf: 'center',
-            alignSelf: 'center',
-            cursor: 'move',
-          }}
-        />
-      )}
+      <div
+        ref={drag}
+        style={{
+          position: 'absolute',
+          width: parentWidth * 0.9,
+          height: height > 60 ? height * 0.9 : height * 0.7,
+          display: 'flex',
+          justifySelf: 'center',
+          alignSelf: 'center',
+          cursor: 'move',
+        }}
+      />
 
       <span
         style={{
-          width: '100%',
+          // width: '100%',
           height: 'auto',
           fontSize: 16,
           fontFamily: theme.fonts.spoqaHanSansNeo,
