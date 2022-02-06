@@ -187,6 +187,7 @@ export const DiaryCard: FC<PropTypes> = ({
             parentWidth={parentWidth}
             style={{
               top: 0,
+              backgroundColor: 'pink',
             }}
           />
 
@@ -195,6 +196,7 @@ export const DiaryCard: FC<PropTypes> = ({
             parentWidth={parentWidth}
             style={{
               bottom: 0,
+              backgroundColor: 'blue',
             }}
           />
         </>
