@@ -1,8 +1,20 @@
-import React, { FC, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  FC,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { DropTargetMonitor, useDrop } from 'react-dnd';
-import styled, { useTheme } from 'styled-components';
+import { useTheme } from 'styled-components';
 
-import { Browser, THIRTY_MINUTES_TIME } from '../../constant';
+import {
+  Browser,
+  DragItemType,
+  ONE_MINUTES_TIME,
+  THIRTY_MINUTES_TIME,
+} from '../../../constant';
 import {
   CreateReviewMutationInput,
   CreateTodoMutationInput,
@@ -13,123 +25,27 @@ import {
   GetTodosOutput,
   UpdateReviewMutationInput,
   UpdateTodoMutationInput,
-} from '../../graphQL/types';
-import { useBrowserInfo, useWindowSize } from '../../hooks';
-import { getDiaryCardHeight } from '../../utils';
-import { DiaryCardDragLayer } from '../molecules';
+} from '../../../graphQL/types';
+import { useBrowserInfo, useWindowSize } from '../../../hooks';
+import { getDiaryCardHeight } from '../../../utils';
+import { DiaryCardDragLayer } from '../../molecules';
 import {
   DiaryCard,
   DiaryCreateCard,
   MainHeader,
   WeekCalendar,
-} from '../organisms';
+} from '../../organisms';
 
-const StyledMainTemplate = styled.div`
-  width: 100%;
-  height: 100%;
-
-  display: flex;
-  flex-direction: column;
-
-  background-color: ${({ theme }) => theme.colors.black2};
-`;
-
-const StyledBody = styled.div`
-  width: 100%;
-  height: auto;
-
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-
-  overflow: hidden;
-`;
-
-const StyledDiaryContainer = styled.div<{ height?: number }>`
-  width: 100%;
-  height: 100%;
-
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-
-  position: relative;
-
-  overflow-y: auto;
-  overflow-x: hidden;
-`;
-
-const StyledTime = styled.div<{
-  isNowHour: boolean;
-  width: number;
-  top: number;
-}>`
-  position: absolute;
-
-  width: ${({ width }) => width}px;
-  min-height: ${({ theme }) => theme.sizes.diaryCardHeight}px;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  color: ${({ theme, isNowHour }) =>
-    isNowHour ? theme.colors.purple1 : theme.colors.grey1};
-  font-family: Spoqa Han Sans Neo;
-  font-size: 14px;
-
-  border-right: 0.5px solid ${({ theme }) => theme.colors.grey3};
-
-  top: ${({ top }) => top}px;
-`;
-
-const StyledDiaryTitleContainer = styled.div`
-  display: flex;
-  flex-direction: row;
-
-  width: 100%;
-  min-height: 66px;
-
-  color: ${({ theme }) => theme.colors.purple1};
-  font-size: 18;
-`;
-
-const StyledDiaryTitle = styled.div<{ isEmpty: boolean }>`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  min-width: 70px;
-  width: ${({ isEmpty }) => (isEmpty ? null : '100%')};
-  height: 100%;
-
-  border: 0.5px solid ${({ theme }) => theme.colors.grey3};
-  box-sizing: border-box;
-`;
-
-const StyledTimeUndecidedContainer = styled.div<{
-  isTimeUndecidedDiary: boolean;
-}>`
-  width: 100%;
-  min-height: ${({ isTimeUndecidedDiary }) =>
-    isTimeUndecidedDiary ? 180 : 0}px;
-
-  display: flex;
-  flex-direction: row;
-`;
-
-const StyledTimeUndecided = styled.div<{
-  width: number;
-}>`
-  min-width: ${({ width }) => width}px;
-  height: 100%;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-right: 0.5px solid ${({ theme }) => theme.colors.grey3};
-  color: ${({ theme }) => theme.colors.purple1};
-`;
+import {
+  StyledBody,
+  StyledDiaryContainer,
+  StyledDiaryTitle,
+  StyledDiaryTitleContainer,
+  StyledMainTemplate,
+  StyledTime,
+  StyledTimeUndecided,
+  StyledTimeUndecidedContainer,
+} from './mainTemplate.styles';
 
 type PropTypes = {
   dataMe?: GetMeOutput;
@@ -162,6 +78,10 @@ export const MainTemplate: FC<PropTypes> = ({
 
   const [isCanDrop, setIsCanDrop] = useState(true);
   const [isScrollSave, setScrollSave] = useState(false);
+  const [resizingCard, setResizingItem] = useState<
+    | { type: 'todo' | 'review'; item: GetTodoOutput | GetReviewOutput }
+    | undefined
+  >(undefined);
 
   const todoTitleRef = useRef<HTMLDivElement>(null);
   const timeTitleRef = useRef<HTMLDivElement>(null);
@@ -191,7 +111,7 @@ export const MainTemplate: FC<PropTypes> = ({
     [dataTodos, dataReviews],
   );
 
-  const getNewStartedAt = (y: number) => {
+  const getNewTime = (y: number) => {
     const year = today.getFullYear();
     const month = today.getMonth();
     const date = today.getDate();
@@ -205,15 +125,15 @@ export const MainTemplate: FC<PropTypes> = ({
 
     const calcY = calcCurrentY + calcScrollTop - calcDiaryContainerStartedY;
 
-    let startTime = todayZeroHourTimestamp;
+    let time = todayZeroHourTimestamp;
 
     if (calcY < 0) {
-      return startTime;
+      return time;
     }
 
-    startTime += Math.floor(calcY / 30) * THIRTY_MINUTES_TIME;
+    time += Math.floor(calcY / 30) * THIRTY_MINUTES_TIME;
 
-    return startTime;
+    return time;
   };
 
   const [, todoDrop] = useDrop({
@@ -225,7 +145,7 @@ export const MainTemplate: FC<PropTypes> = ({
         y: number;
       };
 
-      const startedAt = getNewStartedAt(currentOffset.y);
+      const startedAt = getNewTime(currentOffset.y);
 
       if (startedAt === item.startedAt) {
         return;
@@ -234,7 +154,7 @@ export const MainTemplate: FC<PropTypes> = ({
         if (item.startedAt && item.finishedAt) {
           finishedAt += item.finishedAt - item.startedAt;
         } else {
-          finishedAt += THIRTY_MINUTES_TIME;
+          finishedAt += THIRTY_MINUTES_TIME * 2;
         }
         updateTodo({
           id: item.id,
@@ -242,18 +162,13 @@ export const MainTemplate: FC<PropTypes> = ({
           finishedAt,
         });
       } else {
-        const finishedAt = startedAt + THIRTY_MINUTES_TIME;
+        const finishedAt = startedAt + THIRTY_MINUTES_TIME * 2;
         createTodo({
           contents: item.contents,
           startedAt,
           finishedAt,
         });
       }
-
-      console.log({
-        start: new Date(startedAt),
-        finish: new Date(0),
-      });
     },
   });
 
@@ -266,7 +181,7 @@ export const MainTemplate: FC<PropTypes> = ({
         y: number;
       };
 
-      const startedAt = getNewStartedAt(currentOffset.y);
+      const startedAt = getNewTime(currentOffset.y);
 
       if (startedAt === item.startedAt) {
         return;
@@ -275,7 +190,7 @@ export const MainTemplate: FC<PropTypes> = ({
         if (item.startedAt && item.finishedAt) {
           finishedAt += item.finishedAt - item.startedAt;
         } else {
-          finishedAt += THIRTY_MINUTES_TIME;
+          finishedAt += THIRTY_MINUTES_TIME * 2;
         }
         updateReview({
           id: Number(item.id),
@@ -283,20 +198,269 @@ export const MainTemplate: FC<PropTypes> = ({
           finishedAt,
         });
       } else {
-        const finishedAt = startedAt + THIRTY_MINUTES_TIME;
+        const finishedAt = startedAt + THIRTY_MINUTES_TIME * 2;
         createReview({
           contents: item.contents,
           startedAt,
           finishedAt,
         });
       }
-
-      console.log({
-        start: new Date(startedAt),
-        finish: new Date(0),
-      });
     },
   });
+
+  const getIsCanResize = useCallback(
+    ({
+      id,
+      itemType,
+      resizeType,
+      newTime,
+    }: {
+      id: number;
+      itemType: 'todo' | 'review';
+      resizeType: 'top' | 'bottom';
+      newTime: number;
+    }): {
+      result: boolean;
+      prevItem?: GetTodoOutput | GetReviewOutput;
+      nextItem?: GetTodoOutput | GetReviewOutput;
+    } => {
+      const failObj = {
+        result: false,
+      };
+      const items =
+        itemType === 'todo' ? dataTodos?.todos : dataReviews?.reviews;
+
+      if (!items || items.length < 1) {
+        return failObj;
+      }
+
+      const item = items?.find((im) => im.id === id);
+
+      if (!item) {
+        return failObj;
+      } else {
+        if (resizeType === 'top') {
+          if (item.finishedAt! <= newTime) {
+            return failObj;
+          }
+        } else {
+          if (item.startedAt! >= newTime) {
+            return failObj;
+          }
+        }
+      }
+
+      let prevItemId = -1;
+      let prevItemDiffTime = Number.MAX_SAFE_INTEGER;
+      let nextItemId = -1;
+      let nextItemDiffTime = Number.MAX_SAFE_INTEGER;
+
+      for (const im of items) {
+        // 이전 아이템 찾기
+        const prevDiffTime = item.startedAt! - im.finishedAt!;
+        if (
+          0 < prevDiffTime &&
+          prevDiffTime < prevItemDiffTime &&
+          im.id !== item.id
+        ) {
+          prevItemId = im.id;
+          prevItemDiffTime = prevDiffTime;
+        }
+
+        // 다음 아이템 찾기
+        const nextDiffTime = im.startedAt! - item.finishedAt!;
+        if (
+          0 < nextDiffTime &&
+          nextDiffTime < nextItemDiffTime &&
+          im.id !== item.id
+        ) {
+          nextItemId = im.id;
+          nextItemDiffTime = nextDiffTime;
+        }
+      }
+
+      const prevItem = items?.find((im) => im.id === prevItemId);
+      const nextItem = items?.find((im) => im.id === nextItemId);
+
+      let isCanPrev = false;
+      let isCanNext = false;
+
+      if (
+        !prevItem ||
+        (prevItem?.finishedAt &&
+          prevItem.finishedAt <= newTime &&
+          item?.finishedAt &&
+          item.finishedAt > newTime)
+      ) {
+        isCanPrev = true;
+      }
+
+      if (
+        !nextItem ||
+        (nextItem?.startedAt &&
+          nextItem.startedAt >= newTime &&
+          item?.startedAt &&
+          item.startedAt < newTime)
+      ) {
+        isCanNext = true;
+      }
+
+      return {
+        result: resizeType === 'top' ? isCanPrev : isCanNext,
+        prevItem,
+        nextItem,
+      };
+    },
+    [dataTodos, dataReviews],
+  );
+
+  const resizingHover = (
+    item: (GetTodoOutput | GetReviewOutput) & { type: DragItemType },
+    monitor: DropTargetMonitor,
+    itemKey: 'startedAt' | 'finishedAt',
+  ) => {
+    const { y: diffY } = monitor.getDifferenceFromInitialOffset() as {
+      x: number;
+      y: number;
+    };
+
+    if (diffY === 0) return;
+
+    const { y: clientY } = monitor.getClientOffset() as {
+      x: number;
+      y: number;
+    };
+
+    const newTime = getNewTime(clientY);
+    const { result: isCanResize } = getIsCanResize({
+      id: item.id,
+      itemType: item.type,
+      resizeType: itemKey === 'startedAt' ? 'top' : 'bottom',
+      newTime,
+    });
+
+    if (isCanResize) {
+      item[itemKey] = newTime;
+      setResizingItem({
+        type: item.type,
+        item: { ...item },
+      });
+    }
+  };
+
+  const resizingDrop = (
+    item: (GetTodoOutput | GetReviewOutput) & { type: DragItemType },
+    monitor: DropTargetMonitor,
+    itemKey: 'startedAt' | 'finishedAt',
+  ) => {
+    const { y: diffY } = monitor.getDifferenceFromInitialOffset() as {
+      x: number;
+      y: number;
+    };
+    if (diffY === 0) return;
+
+    const { y } = monitor.getClientOffset() as {
+      x: number;
+      y: number;
+    };
+
+    const newTime = getNewTime(y);
+    const {
+      result: isCanResize,
+      prevItem,
+      nextItem,
+    } = getIsCanResize({
+      id: item.id,
+      itemType: item.type,
+      resizeType: itemKey === 'startedAt' ? 'top' : 'bottom',
+      newTime,
+    });
+
+    setResizingItem(undefined);
+
+    if (isCanResize) {
+      const updatedInput = {
+        id: item.id,
+        [itemKey]: newTime,
+      };
+      if (item.type === 'todo') {
+        updateTodo(updatedInput);
+      } else {
+        updateReview(updatedInput);
+      }
+    } else {
+      const updatedInput: UpdateTodoMutationInput | UpdateReviewMutationInput =
+        {
+          id: item.id,
+        };
+
+      let isOverflowThisCard = false;
+      if (itemKey === 'startedAt') {
+        isOverflowThisCard = item.finishedAt! <= newTime;
+      } else {
+        isOverflowThisCard = newTime <= item.startedAt!;
+      }
+
+      if (isOverflowThisCard) {
+        // 시작시간이 종료시간을 넘어간 경우 || 종료시간이 시작시간을 넘어간 경우
+        if (itemKey === 'startedAt') {
+          updatedInput.startedAt = item.finishedAt! - THIRTY_MINUTES_TIME;
+        } else {
+          updatedInput.finishedAt = item.startedAt! + THIRTY_MINUTES_TIME;
+        }
+      } else {
+        // 시작 또는 종료시간이 다른 카드를 넘어간 경우
+        if (itemKey === 'startedAt') {
+          updatedInput.startedAt = prevItem?.finishedAt;
+        } else {
+          updatedInput.finishedAt = nextItem?.startedAt;
+        }
+      }
+
+      if (item.type === 'todo') {
+        updateTodo(updatedInput);
+      } else {
+        updateReview(updatedInput);
+      }
+    }
+  };
+
+  const [{ isTopResizing }, resizeTopDropRef] = useDrop({
+    accept: 'resize-top',
+    canDrop: () => true,
+    collect: (monitor) => ({
+      isTopResizing: monitor.getItemType() === 'resize-top',
+    }),
+    hover: (
+      item: (GetTodoOutput | GetReviewOutput) & { type: DragItemType },
+      monitor: DropTargetMonitor,
+    ) => resizingHover(item, monitor, 'startedAt'),
+    drop: (
+      item: (GetTodoOutput | GetReviewOutput) & { type: DragItemType },
+      monitor: DropTargetMonitor,
+    ) => resizingDrop(item, monitor, 'startedAt'),
+  });
+
+  const [{ isBottomResizing }, resizeBottomDropRef] = useDrop({
+    accept: 'resize-bottom',
+    canDrop: () => true,
+    collect: (monitor) => ({
+      isBottomResizing: monitor.getItemType() === 'resize-bottom',
+    }),
+    hover: (
+      item: (GetTodoOutput | GetReviewOutput) & { type: DragItemType },
+      monitor: DropTargetMonitor,
+    ) => resizingHover(item, monitor, 'finishedAt'),
+    drop: (
+      item: (GetTodoOutput | GetReviewOutput) & { type: DragItemType },
+      monitor: DropTargetMonitor,
+    ) => resizingDrop(item, monitor, 'finishedAt'),
+  });
+
+  const isResizing = useMemo(
+    () => isTopResizing || isBottomResizing,
+    [isTopResizing, isBottomResizing],
+  );
 
   useEffect(() => {
     if (timeTitleRef.current) {
@@ -316,6 +480,8 @@ export const MainTemplate: FC<PropTypes> = ({
     if (diaryContainerRef.current) {
       todoDrop(diaryContainerRef);
       reviewDrop(diaryContainerRef);
+      resizeTopDropRef(diaryContainerRef);
+      resizeBottomDropRef(diaryContainerRef);
       const diaryContainerRect =
         diaryContainerRef.current.getBoundingClientRect();
       setDiaryContainerStartedY(diaryContainerRect.top);
@@ -385,7 +551,11 @@ export const MainTemplate: FC<PropTypes> = ({
                     styleType="timeLess"
                     originalIndex={i}
                     today={today}
-                    setIsCanDrop={setIsCanDrop}
+                    setIsCanDrop={(v: boolean) => {
+                      if (isCanDrop !== v) {
+                        setIsCanDrop(v);
+                      }
+                    }}
                   />
                 );
               })}
@@ -418,7 +588,11 @@ export const MainTemplate: FC<PropTypes> = ({
                     styleType="timeLess"
                     originalIndex={i}
                     today={today}
-                    setIsCanDrop={setIsCanDrop}
+                    setIsCanDrop={(v: boolean) => {
+                      if (isCanDrop !== v) {
+                        setIsCanDrop(v);
+                      }
+                    }}
                   />
                 );
               })}
@@ -433,7 +607,7 @@ export const MainTemplate: FC<PropTypes> = ({
             }
           }}
         >
-          {browser.name === Browser.Firefox && (
+          {browser.name === Browser.Firefox && !isResizing && (
             <DiaryCardDragLayer parentWidth={diaryCardWidth} today={today} />
           )}
           {[...new Array(24).keys()].map((hour, i) => {
@@ -450,9 +624,18 @@ export const MainTemplate: FC<PropTypes> = ({
               </StyledTime>
             );
           })}
-          {dataTodos?.todos.map((todo, i) => {
+          {dataTodos?.todos.map((t, i) => {
+            let todo = t;
             const { startedAt, finishedAt } = todo;
-            const height = getDiaryCardHeight(startedAt, finishedAt);
+            let height = getDiaryCardHeight(startedAt, finishedAt);
+
+            if (resizingCard) {
+              const { type, item } = resizingCard;
+              if (type === 'todo' && item.id === todo.id) {
+                height = getDiaryCardHeight(item.startedAt, item.finishedAt);
+                todo = item;
+              }
+            }
 
             return (
               <DiaryCard
@@ -465,13 +648,26 @@ export const MainTemplate: FC<PropTypes> = ({
                 styleType="none"
                 originalIndex={i}
                 today={today}
-                setIsCanDrop={setIsCanDrop}
+                setIsCanDrop={(v: boolean) => {
+                  if (isCanDrop !== v) {
+                    setIsCanDrop(v);
+                  }
+                }}
               />
             );
           })}
-          {dataReviews?.reviews.map((review, i) => {
+          {dataReviews?.reviews.map((r, i) => {
+            let review = r;
             const { startedAt, finishedAt } = review;
-            const height = getDiaryCardHeight(startedAt, finishedAt);
+            let height = getDiaryCardHeight(startedAt, finishedAt);
+
+            if (resizingCard) {
+              const { type, item } = resizingCard;
+              if (type === 'review' && item.id === review.id) {
+                height = getDiaryCardHeight(item.startedAt, item.finishedAt);
+                review = item;
+              }
+            }
 
             return (
               <DiaryCard
@@ -484,7 +680,11 @@ export const MainTemplate: FC<PropTypes> = ({
                 styleType="none"
                 originalIndex={i}
                 today={today}
-                setIsCanDrop={setIsCanDrop}
+                setIsCanDrop={(v: boolean) => {
+                  if (isCanDrop !== v) {
+                    setIsCanDrop(v);
+                  }
+                }}
               />
             );
           })}

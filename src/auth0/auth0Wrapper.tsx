@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/no-shadow */
 import { Auth0Error, Auth0UserProfile, WebAuth } from 'auth0-js';
 import {
@@ -40,9 +41,7 @@ const auth0Context = createContext<Auth0Context>({
   isAuthenticated: false,
   isLoading: true,
   signIn: (): Promise<void> => Promise.resolve(),
-  signOut: () => {
-    // TODO: 삭제 대기
-  },
+  signOut: () => {},
   getToken: (): Promise<string | undefined> => Promise.resolve(undefined),
   getAuth0UserProfile: (): Promise<Auth0UserProfile | undefined> =>
     Promise.resolve(undefined),
@@ -158,10 +157,6 @@ export const Auth0Wrapper = ({
    * Token that are to be expired in 10 min will be refetched by setTimeout in useEffet hook below
    */
   const getToken = useCallback(async (): Promise<string | undefined> => {
-    // consoleLog('====================getToken================');
-    // consoleLog({ auth0Client });
-    // consoleLog{ isAuthenticated });
-    // consoleLog('====================getToken================');
     if (!isAuthenticated) {
       return undefined;
     }
@@ -261,6 +256,7 @@ export const Auth0Wrapper = ({
           console.log(result?.accessToken);
           console.log('============accessToken============');
         }
+
         if (result !== undefined) {
           setAuth0UserData({
             accessToken: result?.accessToken,

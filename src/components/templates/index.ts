@@ -1,3 +1,3 @@
 export * from './loadingTemplate';
-export * from './mainTemplate';
+export * from './main';
 export * from './signinTemplate';

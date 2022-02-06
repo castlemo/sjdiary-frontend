@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   useCreateReviewMutation,
   useCreateTodoMutation,
-  useCreateUserMutation,
   useUpdateReviewMutation,
   useUpdateTodoMutation,
 } from '../../graphQL/mutations';

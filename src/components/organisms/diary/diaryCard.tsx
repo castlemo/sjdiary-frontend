@@ -17,14 +17,7 @@ const StyledDiaryCardWrapper = styled.div<{
   parentWidth: number;
   isDragging: boolean;
 }>`
-  position: ${({ styleType }) => {
-    switch (styleType) {
-      case 'none':
-        return 'absolute';
-      default:
-        return null;
-    }
-  }};
+  position: ${({ styleType }) => (styleType === 'none' ? 'absolute' : null)};
   top: ${({ top }) => top}px;
   left: ${({ left }) => left}px;
 
@@ -41,7 +34,12 @@ const StyledDiaryCardWrapper = styled.div<{
 
   border: 0.5px solid ${({ theme }) => theme.colors.grey3};
   box-sizing: border-box;
+`;
 
+const StyledResizingDragBox = styled.div<{ parentWidth: number }>`
+  position: absolute;
+  width: ${({ parentWidth }) => parentWidth}px;
+  height: 5px;
   cursor: ns-resize;
 `;
 
@@ -61,7 +59,7 @@ type PropTypes = {
 export const DiaryCard: FC<PropTypes> = ({
   dragItemType,
   styleType,
-  item: todo,
+  item,
   originalIndex = 0,
   parentWidth,
   today,
@@ -109,23 +107,37 @@ export const DiaryCard: FC<PropTypes> = ({
 
       return top;
     },
-    [todo],
+    [item],
   );
 
-  const { startedAt, finishedAt } = todo;
+  const { startedAt, finishedAt } = item;
   const startedStr = timeToString(startedAt);
   const finishedStr = timeToString(finishedAt);
 
   const top = getTop(startedAt, finishedAt);
 
-  const [{ isDragging }, drag, dragPreview] = useDrag({
+  const [{ isDragging }, dragRef, dragPreview] = useDrag({
     type: dragItemType,
-    item: () => ({
-      ...todo,
-    }),
+    item: item,
     collect: (monitor: DragSourceMonitor) => ({
       isDragging: monitor.isDragging(),
     }),
+  });
+
+  const [, resizeTopRef, resizeTopPreview] = useDrag({
+    type: 'resize-top',
+    item: {
+      ...item,
+      type: dragItemType,
+    },
+  });
+
+  const [, resizeBottomRef, resizeBottomPreview] = useDrag({
+    type: 'resize-bottom',
+    item: {
+      ...item,
+      type: dragItemType,
+    },
   });
 
   useEffect(() => {
@@ -134,6 +146,8 @@ export const DiaryCard: FC<PropTypes> = ({
       if (browser.name === Browser.Firefox) {
         dragPreview(getEmptyImage(), { captureDraggingState: true });
       }
+      resizeTopPreview(getEmptyImage());
+      resizeBottomPreview(getEmptyImage());
     }
   }, [diaryCardRef]);
 
@@ -154,7 +168,7 @@ export const DiaryCard: FC<PropTypes> = ({
       ref={diaryCardRef}
     >
       <div
-        ref={drag}
+        ref={dragRef}
         style={{
           position: 'absolute',
           width: parentWidth * 0.9,
@@ -166,21 +180,39 @@ export const DiaryCard: FC<PropTypes> = ({
         }}
       />
 
+      {styleType === 'none' && (
+        <>
+          <StyledResizingDragBox
+            ref={resizeTopRef}
+            parentWidth={parentWidth}
+            style={{
+              top: 0,
+            }}
+          />
+
+          <StyledResizingDragBox
+            ref={resizeBottomRef}
+            parentWidth={parentWidth}
+            style={{
+              bottom: 0,
+            }}
+          />
+        </>
+      )}
+
       <span
         style={{
-          // width: '100%',
           height: 'auto',
           fontSize: 16,
           fontFamily: theme.fonts.spoqaHanSansNeo,
           marginLeft: 20,
         }}
       >
-        {todo.contents}
+        {item.contents}
       </span>
       {height > 30 && (
         <span
           style={{
-            width: '100%',
             height: 'auto',
             fontSize: 12,
             fontFamily: theme.fonts.spoqaHanSansNeo,
