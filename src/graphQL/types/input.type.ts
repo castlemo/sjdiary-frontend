@@ -5,7 +5,7 @@ export type CreateUserInput = {
 };
 
 export type CreateTodoMutationInput = {
-  contents?: string;
+  content?: string;
   finishedAt?: number;
   startedAt?: number;
 };
@@ -14,7 +14,7 @@ export type CreateReviewMutationInput = CreateTodoMutationInput;
 
 export type UpdateTodoMutationInput = {
   id: number;
-  contents?: string;
+  content?: string;
   startedAt?: number;
   finishedAt?: number;
   completedAt?: number;

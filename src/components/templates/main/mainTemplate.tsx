@@ -164,7 +164,7 @@ export const MainTemplate: FC<PropTypes> = ({
       } else {
         const finishedAt = startedAt + THIRTY_MINUTES_TIME * 2;
         createTodo({
-          contents: item.contents,
+          content: item.content,
           startedAt,
           finishedAt,
         });
@@ -200,7 +200,7 @@ export const MainTemplate: FC<PropTypes> = ({
       } else {
         const finishedAt = startedAt + THIRTY_MINUTES_TIME * 2;
         createReview({
-          contents: item.contents,
+          content: item.content,
           startedAt,
           finishedAt,
         });

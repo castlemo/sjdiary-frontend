@@ -8,12 +8,10 @@ export const CREATE_TODO = gql`
   mutation CreateTodo($input: CreateTodoInput!) {
     createTodo(input: $input) {
       id
-      contents
+      content
       completedAt
       finishedAt
       startedAt
-      createdAt
-      updatedAt
     }
   }
 `;

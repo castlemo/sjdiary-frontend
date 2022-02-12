@@ -7,11 +7,9 @@ export const CREATE_REVIEW = gql`
   mutation CreateReview($input: CreateReviewInput!) {
     createReview(input: $input) {
       id
-      contents
+      content
       finishedAt
       startedAt
-      createdAt
-      updatedAt
     }
   }
 `;

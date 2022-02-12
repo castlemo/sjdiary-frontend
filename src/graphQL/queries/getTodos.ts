@@ -6,12 +6,10 @@ export const GET_TODOS = gql`
   query Todos($input: TodosInput!) {
     todos(input: $input) {
       id
-      contents
+      content
       startedAt
       finishedAt
       completedAt
-      createdAt
-      updatedAt
     }
   }
 `;

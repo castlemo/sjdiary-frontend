@@ -11,11 +11,9 @@ export const UPDATE_REVIEW = gql`
   mutation UpdateReview($input: UpdateReviewInput!) {
     updateReview(input: $input) {
       id
-      contents
+      content
       finishedAt
       startedAt
-      createdAt
-      updatedAt
     }
   }
 `;

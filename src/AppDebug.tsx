@@ -13,8 +13,6 @@ export const AppDebug = () => {
     setAccessToken(token);
   };
 
-  return null;
-
   return (
     <div
       style={{

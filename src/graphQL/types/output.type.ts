@@ -1,20 +1,16 @@
 export type GetMeOutput = {
-  createdAt: number;
   email: string;
   id: number;
   name: string;
   profileImageUrl: string;
-  updatedAt: number;
 };
 
 export type GetTodoOutput = {
   completedAt?: number;
-  contents: string;
-  createdAt: number;
+  content: string;
   finishedAt?: number;
   id: number;
   startedAt?: number;
-  updatedAt: number;
 };
 
 export type GetTodosOutput = {
@@ -23,12 +19,10 @@ export type GetTodosOutput = {
 };
 
 export type GetReviewOutput = {
-  contents: string;
-  createdAt: number;
+  content: string;
   finishedAt?: number;
   id: number;
   startedAt?: number;
-  updatedAt: number;
 };
 
 export type GetReviewsOutput = {

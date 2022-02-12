@@ -210,7 +210,7 @@ export const DiaryCard: FC<PropTypes> = ({
           marginLeft: 20,
         }}
       >
-        {item.contents}
+        {item.content}
       </span>
       {height > 30 && (
         <span

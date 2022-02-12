@@ -3,7 +3,7 @@ import { useDrag } from 'react-dnd';
 import { getEmptyImage } from 'react-dnd-html5-backend';
 import styled, { useTheme } from 'styled-components';
 
-import { CONTENTS_MAX_LENGTH, DragItemType } from '../../../constant';
+import { content_MAX_LENGTH, DragItemType } from '../../../constant';
 import {
   CreateReviewMutationInput,
   CreateTodoMutationInput,
@@ -40,25 +40,25 @@ export const DiaryCreateCard = ({
 }: PropTypes) => {
   const theme = useTheme();
 
-  const [contents, setContents] = useState('');
+  const [content, setcontent] = useState('');
 
   const wrapperRef = useRef<HTMLDivElement>(null);
 
   const onEnterPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && 0 < contents.length) {
+    if (e.key === 'Enter' && 0 < content.length) {
       createDiary({
-        contents,
+        content,
       });
     }
   };
 
-  const onChangeContentsInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onChangecontentInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
-    setContents(value);
+    setcontent(value);
   };
 
   const canDarg = useCallback(() => {
-    const isCanDarg = contents.length > 0;
+    const isCanDarg = content.length > 0;
 
     if (!isCanDarg) {
       const msg =
@@ -69,12 +69,12 @@ export const DiaryCreateCard = ({
     }
 
     return isCanDarg;
-  }, [contents]);
+  }, [content]);
 
   const [, drag, dragPreview] = useDrag({
     type: dragItemType,
     item: () => ({
-      contents,
+      content,
     }),
     canDrag: canDarg,
   });
@@ -93,15 +93,15 @@ export const DiaryCreateCard = ({
         style={{
           width: '90%',
           fontSize: 16,
-          color: contents.length > 0 ? theme.colors.white1 : theme.colors.grey2,
+          color: content.length > 0 ? theme.colors.white1 : theme.colors.grey2,
           backgroundColor: 'transparent',
           border: 'none',
           outlineStyle: 'none',
         }}
-        maxLength={CONTENTS_MAX_LENGTH}
+        maxLength={content_MAX_LENGTH}
         type="text"
-        value={contents}
-        onChange={onChangeContentsInput}
+        value={content}
+        onChange={onChangecontentInput}
         placeholder={inputPlaceHolder}
         onKeyPress={onEnterPress}
       />

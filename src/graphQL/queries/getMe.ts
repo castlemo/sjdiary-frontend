@@ -5,12 +5,10 @@ import { GetMeOutput } from '../types';
 export const GET_ME = gql`
   query Me {
     me {
-      createdAt
       email
       id
       name
       profileImageUrl
-      updatedAt
     }
   }
 `;

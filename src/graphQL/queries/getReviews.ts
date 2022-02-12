@@ -13,11 +13,9 @@ export const GET_REVIEWS = gql`
   query Reviews($input: ReviewsInput!) {
     reviews(input: $input) {
       id
-      contents
+      content
       startedAt
       finishedAt
-      createdAt
-      updatedAt
     }
   }
 `;

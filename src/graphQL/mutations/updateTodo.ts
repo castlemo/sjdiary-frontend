@@ -7,12 +7,10 @@ export const UPDATE_TODO = gql`
   mutation UpdateTodo($input: UpdateTodoInput!) {
     updateTodo(input: $input) {
       id
-      contents
+      content
       completedAt
       finishedAt
       startedAt
-      createdAt
-      updatedAt
     }
   }
 `;
@@ -49,6 +47,7 @@ export const useUpdateTodoMutation = (
   );
 
   const updateTodo = (input: UpdateTodoMutationInput) => {
+    console.log({ ...input });
     updateTodoMutation({
       variables: {
         input,
