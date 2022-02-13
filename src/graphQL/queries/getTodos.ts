@@ -31,6 +31,7 @@ type UseGetTodosQuery = {
 
 export const useGetTodosQuery = (
   input: GetTodosQueryInput,
+  today: Date,
   options?: QueryHookOptions<Data, Variables>,
 ): UseGetTodosQuery => {
   const {
@@ -43,10 +44,33 @@ export const useGetTodosQuery = (
     variables: { input },
   });
 
+  const nowYear = today.getFullYear();
+  const nowMonth = today.getMonth();
+  const nowDate = today.getDate();
+
   const data = response?.todos.reduce(
     (obj: GetTodosOutput, cur: GetTodoOutput) => {
       if (cur.startedAt && cur.finishedAt) {
-        obj.todos.push(cur);
+        const todoStartDate = new Date(cur.startedAt);
+        const startYear = todoStartDate.getFullYear();
+        const startMonth = todoStartDate.getMonth();
+        const startDate = todoStartDate.getDate();
+
+        const todoFinishDate = new Date(cur.finishedAt);
+        const finishYear = todoFinishDate.getFullYear();
+        const finishMonth = todoFinishDate.getMonth();
+        const finishDate = todoFinishDate.getDate();
+
+        if (
+          nowYear === startYear &&
+          nowYear === finishYear &&
+          nowMonth === startMonth &&
+          nowMonth === finishMonth &&
+          nowDate === startDate &&
+          nowDate === finishDate
+        ) {
+          obj.todos.push(cur);
+        }
       } else {
         obj.timeUndecidedTodos.push(cur);
       }

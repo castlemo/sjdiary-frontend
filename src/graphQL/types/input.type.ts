@@ -17,7 +17,7 @@ export type UpdateTodoMutationInput = {
   content?: string;
   startedAt?: number;
   finishedAt?: number;
-  completedAt?: number;
+  isCompleted?: boolean;
 };
 
 export type UpdateReviewMutationInput = Omit<
