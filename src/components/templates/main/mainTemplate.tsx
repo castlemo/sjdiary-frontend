@@ -9,12 +9,7 @@ import React, {
 import { DropTargetMonitor, useDrop } from 'react-dnd';
 import { useTheme } from 'styled-components';
 
-import {
-  Browser,
-  DragItemType,
-  ONE_MINUTES_TIME,
-  THIRTY_MINUTES_TIME,
-} from '../../../constant';
+import { Browser, DragItemType, THIRTY_MINUTES_TIME } from '../../../constant';
 import {
   CreateReviewMutationInput,
   CreateTodoMutationInput,
@@ -220,12 +215,12 @@ export const MainTemplate: FC<PropTypes> = ({
       resizeType: 'top' | 'bottom';
       newTime: number;
     }): {
-      result: boolean;
+      isCanResize: boolean;
       prevItem?: GetTodoOutput | GetReviewOutput;
       nextItem?: GetTodoOutput | GetReviewOutput;
     } => {
       const failObj = {
-        result: false,
+        isCanResize: false,
       };
       const items =
         itemType === 'todo' ? dataTodos?.todos : dataReviews?.reviews;
@@ -279,17 +274,17 @@ export const MainTemplate: FC<PropTypes> = ({
         }
       }
 
-      const prevItem = items?.find((im) => im.id === prevItemId);
-      const nextItem = items?.find((im) => im.id === nextItemId);
+      const prevItem = items.find((im) => im.id === prevItemId);
+      const nextItem = items.find((im) => im.id === nextItemId);
 
       let isCanPrev = false;
       let isCanNext = false;
 
       if (
         !prevItem ||
-        (prevItem?.finishedAt &&
+        (prevItem.finishedAt &&
           prevItem.finishedAt <= newTime &&
-          item?.finishedAt &&
+          item.finishedAt &&
           item.finishedAt > newTime)
       ) {
         isCanPrev = true;
@@ -297,16 +292,16 @@ export const MainTemplate: FC<PropTypes> = ({
 
       if (
         !nextItem ||
-        (nextItem?.startedAt &&
+        (nextItem.startedAt &&
           nextItem.startedAt >= newTime &&
-          item?.startedAt &&
+          item.startedAt &&
           item.startedAt < newTime)
       ) {
         isCanNext = true;
       }
 
       return {
-        result: resizeType === 'top' ? isCanPrev : isCanNext,
+        isCanResize: resizeType === 'top' ? isCanPrev : isCanNext,
         prevItem,
         nextItem,
       };
@@ -332,7 +327,8 @@ export const MainTemplate: FC<PropTypes> = ({
     };
 
     const newTime = getNewTime(clientY);
-    const { result: isCanResize } = getIsCanResize({
+
+    const { isCanResize } = getIsCanResize({
       id: item.id,
       itemType: item.type,
       resizeType: itemKey === 'startedAt' ? 'top' : 'bottom',
@@ -365,11 +361,8 @@ export const MainTemplate: FC<PropTypes> = ({
     };
 
     const newTime = getNewTime(y);
-    const {
-      result: isCanResize,
-      prevItem,
-      nextItem,
-    } = getIsCanResize({
+
+    const { isCanResize, prevItem, nextItem } = getIsCanResize({
       id: item.id,
       itemType: item.type,
       resizeType: itemKey === 'startedAt' ? 'top' : 'bottom',
@@ -542,7 +535,7 @@ export const MainTemplate: FC<PropTypes> = ({
 
                 return (
                   <DiaryCard
-                    dragItemType="todo"
+                    itemType="todo"
                     item={todo}
                     height={height}
                     parentWidth={diaryCardWidth}
@@ -556,6 +549,7 @@ export const MainTemplate: FC<PropTypes> = ({
                         setIsCanDrop(v);
                       }
                     }}
+                    updateItem={updateTodo}
                   />
                 );
               })}
@@ -579,7 +573,7 @@ export const MainTemplate: FC<PropTypes> = ({
 
                 return (
                   <DiaryCard
-                    dragItemType="review"
+                    itemType="review"
                     item={review}
                     height={height}
                     parentWidth={diaryCardWidth}
@@ -593,6 +587,7 @@ export const MainTemplate: FC<PropTypes> = ({
                         setIsCanDrop(v);
                       }
                     }}
+                    updateItem={updateReview}
                   />
                 );
               })}
@@ -608,7 +603,11 @@ export const MainTemplate: FC<PropTypes> = ({
           }}
         >
           {browser.name === Browser.Firefox && !isResizing && (
-            <DiaryCardDragLayer parentWidth={diaryCardWidth} today={today} />
+            <DiaryCardDragLayer
+              parentWidth={diaryCardWidth}
+              today={today}
+              x={timeTitleRef.current?.getBoundingClientRect().right ?? 0}
+            />
           )}
           {[...new Array(24).keys()].map((hour, i) => {
             const top = i * 60;
@@ -626,7 +625,7 @@ export const MainTemplate: FC<PropTypes> = ({
           })}
           {dataTodos?.todos.map((t, i) => {
             let todo = t;
-            const { startedAt, finishedAt } = todo;
+            const { startedAt, finishedAt, completedAt } = todo;
             let height = getDiaryCardHeight(startedAt, finishedAt);
 
             if (resizingCard) {
@@ -639,7 +638,7 @@ export const MainTemplate: FC<PropTypes> = ({
 
             return (
               <DiaryCard
-                dragItemType="todo"
+                itemType="todo"
                 item={todo}
                 height={height}
                 parentWidth={diaryCardWidth}
@@ -653,6 +652,8 @@ export const MainTemplate: FC<PropTypes> = ({
                     setIsCanDrop(v);
                   }
                 }}
+                isCompleted={!!completedAt}
+                updateItem={updateTodo}
               />
             );
           })}
@@ -671,7 +672,7 @@ export const MainTemplate: FC<PropTypes> = ({
 
             return (
               <DiaryCard
-                dragItemType="review"
+                itemType="review"
                 item={review}
                 height={height}
                 parentWidth={diaryCardWidth}
@@ -685,6 +686,7 @@ export const MainTemplate: FC<PropTypes> = ({
                     setIsCanDrop(v);
                   }
                 }}
+                updateItem={updateReview}
               />
             );
           })}

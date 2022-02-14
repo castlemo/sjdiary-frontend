@@ -78,12 +78,14 @@ export const Auth0Wrapper = ({
 
   const signIn = ({ type = 'google' }: SignInOptions) => {
     if (auth0Client) {
+      const redirectUri = `${window.location.origin}${ROUTES.MAIN}`;
       try {
         setCheckAuth(true);
 
         if (type === 'apple') {
           auth0Client.authorize({
             connection: 'apple',
+            redirectUri,
           });
           return;
         }
@@ -91,6 +93,7 @@ export const Auth0Wrapper = ({
         if (type === 'google') {
           auth0Client.authorize({
             connection: 'google-oauth2',
+            redirectUri,
           });
           return;
         }

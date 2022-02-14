@@ -40,7 +40,7 @@ export const DiaryCreateCard = ({
 }: PropTypes) => {
   const theme = useTheme();
 
-  const [content, setcontent] = useState('');
+  const [content, setContent] = useState('');
 
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -49,12 +49,13 @@ export const DiaryCreateCard = ({
       createDiary({
         content,
       });
+      setContent('');
     }
   };
 
-  const onChangecontentInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onChangeContentInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
-    setcontent(value);
+    setContent(value);
   };
 
   const canDarg = useCallback(() => {
@@ -101,7 +102,7 @@ export const DiaryCreateCard = ({
         maxLength={content_MAX_LENGTH}
         type="text"
         value={content}
-        onChange={onChangecontentInput}
+        onChange={onChangeContentInput}
         placeholder={inputPlaceHolder}
         onKeyPress={onEnterPress}
       />

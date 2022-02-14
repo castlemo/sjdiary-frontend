@@ -1,4 +1,4 @@
-import { CSSProperties, FC, memo } from 'react';
+import { CSSProperties, FC, useEffect, useMemo, useState } from 'react';
 import { DragLayerMonitor, useDragLayer, XYCoord } from 'react-dnd';
 import styled from 'styled-components';
 
@@ -29,6 +29,7 @@ const StyledDragLayer = styled.div<{ parentWidth: number; height: number }>`
 const getDragLayerStyles = (
   initialOffset: XYCoord | null,
   currentOffset: XYCoord | null,
+  x: number,
 ): CSSProperties => {
   if (!initialOffset || !currentOffset) {
     return {
@@ -36,9 +37,9 @@ const getDragLayerStyles = (
     };
   }
 
-  const { x, y } = currentOffset;
+  const { x: currentX, y } = currentOffset;
 
-  const transform = `translate(${x}px, ${y}px)`;
+  const transform = `translate(${x ? x : currentX}px, ${y}px)`;
   return {
     transform,
     WebkitTransform: transform,
@@ -48,11 +49,13 @@ const getDragLayerStyles = (
 type PropTypes = {
   parentWidth: number;
   today: Date;
+  x: number;
 };
 
 export const DiaryCardDragLayer: FC<PropTypes> = ({
   parentWidth = 0,
   today,
+  x,
 }) => {
   const { itemType, isDragging, item, initialOffset, currentOffset } =
     useDragLayer((monitor: DragLayerMonitor) => ({
@@ -62,6 +65,14 @@ export const DiaryCardDragLayer: FC<PropTypes> = ({
       currentOffset: monitor.getSourceClientOffset(),
       isDragging: monitor.isDragging(),
     }));
+
+  const [isCompleted, setIsCompleted] = useState(false);
+
+  useEffect(() => {
+    if (item) {
+      setIsCompleted(!!item.completedAt);
+    }
+  }, [item]);
 
   if (!isDragging) {
     return null;
@@ -73,19 +84,24 @@ export const DiaryCardDragLayer: FC<PropTypes> = ({
   return (
     <StyledDragLayer
       parentWidth={parentWidth}
-      style={getDragLayerStyles(initialOffset, currentOffset)}
+      style={getDragLayerStyles(
+        initialOffset,
+        currentOffset,
+        itemType === 'review' ? x + parentWidth : x,
+      )}
       height={height}
     >
       <DiaryCard
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
         setIsCanDrop={() => {}}
-        dragItemType="todo"
+        itemType={itemType as 'todo' | 'review'}
         left={0}
         height={height}
         parentWidth={parentWidth}
         styleType="drag"
         item={item}
         today={today}
+        updateItem={() => {}}
+        isCompleted={isCompleted}
       />
     </StyledDragLayer>
   );

@@ -1,13 +1,12 @@
-import { useMutation, useQuery } from '@apollo/client';
+import { useQuery } from '@apollo/client';
 import { useEffect, useMemo } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import { isVariableDeclaration } from 'typescript';
 
 import { useAuth0 } from './auth0';
 import { MainPage, NotFoundPage, SigninPage } from './components/pages';
 import { LoadingTemplate } from './components/templates';
 import { ROUTES } from './constant';
-import { CREATE_USER, useCreateUserMutation } from './graphQL/mutations';
+import { useCreateUserMutation } from './graphQL/mutations';
 import { VERIFY_USER } from './graphQL/queries';
 import { Test } from './test/test';
 
@@ -60,9 +59,10 @@ export const MainRouter = (): JSX.Element => {
     }
   }, [isAuthenticated, isVerifyUser]);
 
-  if (isAuthLoading || loadingVerifyUser || loadingCreateUser) {
-    return <LoadingTemplate />;
-  }
+  const isLoading = useMemo(
+    () => isAuthLoading || loadingVerifyUser || loadingCreateUser,
+    [isAuthLoading, loadingVerifyUser, loadingCreateUser],
+  );
 
   if (errorVerifyUser || errorCreateUser) {
     // TODO Error Page 작업
@@ -70,24 +70,27 @@ export const MainRouter = (): JSX.Element => {
   }
 
   return (
-    <Routes>
-      {/* main */}
-      <Route
-        path={ROUTES.MAIN}
-        element={isMember ? <MainPage /> : <Navigate to={ROUTES.SIGNIN} />}
-      />
+    <>
+      {isLoading && <LoadingTemplate />}
+      <Routes>
+        {/* main */}
+        <Route
+          path={ROUTES.MAIN}
+          element={isMember ? <MainPage /> : <Navigate to={ROUTES.SIGNIN} />}
+        />
 
-      {/* Sign In */}
-      <Route
-        path={ROUTES.SIGNIN}
-        element={isMember ? <Navigate to={ROUTES.MAIN} /> : <SigninPage />}
-      />
+        {/* Sign In */}
+        <Route
+          path={ROUTES.SIGNIN}
+          element={isMember ? <Navigate to={ROUTES.MAIN} /> : <SigninPage />}
+        />
 
-      {/* Test */}
-      <Route path="/test" element={<Test />} />
+        {/* Test */}
+        <Route path="/test" element={<Test />} />
 
-      {/* Not Found */}
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+        {/* Not Found */}
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </>
   );
 };

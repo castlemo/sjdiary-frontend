@@ -1,22 +1,33 @@
-import { FC, useCallback, useEffect, useRef } from 'react';
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { DragSourceMonitor, useDrag } from 'react-dnd';
 import { getEmptyImage } from 'react-dnd-html5-backend';
 import styled, { useTheme } from 'styled-components';
 
 import { Browser, DragItemType, THIRTY_MINUTES_TIME } from '../../../constant';
-import { GetReviewOutput, GetTodoOutput } from '../../../graphQL/types';
+import {
+  GetReviewOutput,
+  GetTodoOutput,
+  UpdateReviewMutationInput,
+  UpdateTodoMutationInput,
+} from '../../../graphQL/types';
 import { useBrowserInfo } from '../../../hooks';
+import { ColorCheckButton } from '../../atoms';
 
 type StyleType = 'drag' | 'none' | 'timeLess';
 
-const StyledDiaryCardWrapper = styled.div<{
+type StyledDiaryCardWrapperPropTypes = {
   styleType: StyleType;
   height: number;
   left: number;
   top: number;
   parentWidth: number;
   isDragging: boolean;
-}>`
+  isCompleted: boolean;
+  isOverTime: boolean;
+  itemType: DragItemType;
+};
+
+const StyledDiaryCardWrapper = styled.div<StyledDiaryCardWrapperPropTypes>`
   position: ${({ styleType }) => (styleType === 'none' ? 'absolute' : null)};
   top: ${({ top }) => top}px;
   left: ${({ left }) => left}px;
@@ -25,15 +36,27 @@ const StyledDiaryCardWrapper = styled.div<{
   height: ${({ height }) => height}px;
 
   display: ${({ isDragging }) => (isDragging ? 'none' : 'flex')};
-  flex-direction: column;
+  flex-direction: row;
   justify-content: center;
-  align-content: center;
+  align-items: center;
 
   color: ${({ theme }) => theme.colors.purple1};
-  background-color: ${({ theme }) => theme.colors.black2};
+  background-color: ${({ theme, isCompleted, isOverTime, itemType }) => {
+    if (itemType === 'review') {
+      return theme.colors.black2;
+    }
+
+    return isCompleted
+      ? theme.colors.purple3
+      : isOverTime
+      ? theme.colors.green2
+      : theme.colors.black2;
+  }};
 
   border: 0.5px solid ${({ theme }) => theme.colors.grey3};
   box-sizing: border-box;
+
+  z-index: 1;
 `;
 
 const StyledResizingDragBox = styled.div<{ parentWidth: number }>`
@@ -44,20 +67,23 @@ const StyledResizingDragBox = styled.div<{ parentWidth: number }>`
 `;
 
 type PropTypes = {
-  dragItemType: DragItemType;
+  itemType: DragItemType;
   styleType: StyleType;
-  item: GetTodoOutput | GetReviewOutput;
+  item: GetReviewOutput | GetTodoOutput;
   parentWidth: number;
   height: number;
   today: Date;
   left: number;
   originalIndex?: number;
   setIsCanDrop: (v: boolean) => void;
-  is?: boolean;
+  isCompleted?: boolean;
+  updateItem: (
+    input: UpdateTodoMutationInput | UpdateReviewMutationInput,
+  ) => void;
 };
 
 export const DiaryCard: FC<PropTypes> = ({
-  dragItemType,
+  itemType,
   styleType,
   item,
   originalIndex = 0,
@@ -66,9 +92,41 @@ export const DiaryCard: FC<PropTypes> = ({
   height,
   left,
   setIsCanDrop,
+  isCompleted = false,
+  updateItem,
 }): JSX.Element => {
   const theme = useTheme();
   const { browser } = useBrowserInfo();
+
+  const dragDivRef = useRef<HTMLDivElement>(null);
+  const dragInputRef = useRef<HTMLInputElement>(null);
+
+  const [isDeletedModal, setIsDeletedModal] = useState(false);
+  const [content, setContent] = useState(item.content);
+
+  const onEnterPress = async (e: React.KeyboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    if (e.key === 'Enter' && 0 < content.length) {
+      updateItem({
+        id: item.id,
+        content,
+      });
+      setContent('');
+    }
+  };
+
+  const onChangeContentInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    setContent(value);
+  };
+
+  const isOverTime = useMemo(() => {
+    if (item.finishedAt) {
+      return item.finishedAt < today.getTime();
+    }
+
+    return false;
+  }, [today, item]);
 
   const diaryCardRef = useRef<HTMLDivElement>(null);
 
@@ -117,7 +175,7 @@ export const DiaryCard: FC<PropTypes> = ({
   const top = getTop(startedAt, finishedAt);
 
   const [{ isDragging }, dragRef, dragPreview] = useDrag({
-    type: dragItemType,
+    type: itemType,
     item: item,
     collect: (monitor: DragSourceMonitor) => ({
       isDragging: monitor.isDragging(),
@@ -128,7 +186,7 @@ export const DiaryCard: FC<PropTypes> = ({
     type: 'resize-top',
     item: {
       ...item,
-      type: dragItemType,
+      type: itemType,
     },
   });
 
@@ -136,7 +194,7 @@ export const DiaryCard: FC<PropTypes> = ({
     type: 'resize-bottom',
     item: {
       ...item,
-      type: dragItemType,
+      type: itemType,
     },
   });
 
@@ -151,8 +209,16 @@ export const DiaryCard: FC<PropTypes> = ({
     }
   }, [diaryCardRef]);
 
+  useEffect(() => {
+    if (dragDivRef.current) {
+      dragRef(dragDivRef);
+    }
+  }, [dragDivRef]);
+
   return (
     <StyledDiaryCardWrapper
+      ref={diaryCardRef}
+      itemType={itemType}
       styleType={styleType}
       height={height}
       top={top}
@@ -165,21 +231,13 @@ export const DiaryCard: FC<PropTypes> = ({
       onDragLeave={() => {
         setIsCanDrop(true);
       }}
-      ref={diaryCardRef}
+      isCompleted={isCompleted}
+      isOverTime={isOverTime}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        console.log('우클!');
+      }}
     >
-      <div
-        ref={dragRef}
-        style={{
-          position: 'absolute',
-          width: parentWidth * 0.9,
-          height: height > 60 ? height * 0.9 : height * 0.7,
-          display: 'flex',
-          justifySelf: 'center',
-          alignSelf: 'center',
-          cursor: 'move',
-        }}
-      />
-
       {styleType === 'none' && (
         <>
           <StyledResizingDragBox
@@ -187,7 +245,6 @@ export const DiaryCard: FC<PropTypes> = ({
             parentWidth={parentWidth}
             style={{
               top: 0,
-              backgroundColor: 'pink',
             }}
           />
 
@@ -196,33 +253,100 @@ export const DiaryCard: FC<PropTypes> = ({
             parentWidth={parentWidth}
             style={{
               bottom: 0,
-              backgroundColor: 'blue',
             }}
           />
         </>
       )}
 
-      <span
+      <div
+        ref={dragDivRef}
         style={{
-          height: 'auto',
-          fontSize: 16,
-          fontFamily: theme.fonts.spoqaHanSansNeo,
-          marginLeft: 20,
+          position: 'absolute',
+          width: parentWidth * 0.9,
+          height: height > 60 ? height * 0.9 : height * 0.7,
+          display: 'flex',
+          justifySelf: 'center',
+          alignSelf: 'center',
+          cursor: 'move',
+          left: itemType === 'todo' ? 0 : undefined,
+        }}
+      />
+
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          width: '90%',
+          justifyContent: 'center',
+          cursor: 'move',
         }}
       >
-        {item.content}
-      </span>
-      {height > 30 && (
-        <span
-          style={{
-            height: 'auto',
-            fontSize: 12,
-            fontFamily: theme.fonts.spoqaHanSansNeo,
-            marginLeft: 20,
+        {itemType === 'todo' ? (
+          <input
+            ref={dragInputRef}
+            style={{
+              height: 'auto',
+              fontSize: 16,
+              color: isCompleted
+                ? theme.colors.purple1
+                : isOverTime
+                ? theme.colors.green1
+                : theme.colors.purple1,
+              fontFamily: theme.fonts.spoqaHanSansNeo,
+              backgroundColor: 'transparent',
+              border: 0,
+              outline: 'none',
+              zIndex: 1,
+            }}
+            defaultValue={content}
+            onKeyPress={onEnterPress}
+            onChange={onChangeContentInput}
+            onMouseOver={() => {
+              if (dragInputRef.current) {
+                dragRef(dragInputRef);
+              }
+            }}
+            onMouseLeave={() => {
+              if (dragDivRef.current) {
+                dragRef(dragDivRef);
+              }
+            }}
+          />
+        ) : (
+          <span
+            style={{
+              height: 'auto',
+              fontSize: 16,
+              fontFamily: theme.fonts.spoqaHanSansNeo,
+            }}
+          >
+            {content}
+          </span>
+        )}
+
+        {height > 30 && (
+          <span
+            style={{
+              height: 'auto',
+              fontSize: 12,
+              fontFamily: theme.fonts.spoqaHanSansNeo,
+            }}
+          >
+            {startedStr} ~ {finishedStr}
+          </span>
+        )}
+      </div>
+
+      {itemType === 'todo' && item.startedAt && item.finishedAt && (
+        <ColorCheckButton
+          isChecked={isCompleted}
+          onClick={(val: boolean) => {
+            updateItem({
+              id: item.id,
+              isCompleted: val,
+            });
           }}
-        >
-          {startedStr} ~ {finishedStr}
-        </span>
+        />
       )}
     </StyledDiaryCardWrapper>
   );

@@ -11,6 +11,7 @@ import {
   useGetReviewsQuery,
   useGetTodosQuery,
 } from '../../graphQL/queries';
+import { useInterval } from '../../hooks';
 import { LoadingTemplate, MainTemplate } from '../templates';
 
 export const MainPage = (): JSX.Element => {
@@ -34,25 +35,22 @@ export const MainPage = (): JSX.Element => {
     };
   }, [dateObj, today]);
 
-  useEffect(() => {
-    const updateDateInterval = setInterval(() => {
-      setToday(new Date(today.getTime() + 1000));
-    }, 1000);
-
-    return () => {
-      clearInterval(updateDateInterval);
-    };
-  }, [today]);
+  useInterval(() => {
+    setToday(new Date(today.getTime() + 1000));
+  }, 1000);
 
   const { data: dataMe, loading: isLoadingGetMe } = useGetMeQuery();
 
-  const { data: dataTodos, loading: isLoadingGetTodos } = useGetTodosQuery({
-    startDate,
-    endDate,
-  });
+  const { data: dataTodos, loading: isLoadingGetTodos } = useGetTodosQuery(
+    {
+      startDate,
+      endDate,
+    },
+    today,
+  );
 
   const { data: dataReviews, loading: isLoadingGetReviews } =
-    useGetReviewsQuery({ startDate, endDate });
+    useGetReviewsQuery({ startDate, endDate }, today);
 
   const { createTodo, loading: isLoadingCreateTodo } = useCreateTodoMutation({
     startDate,
@@ -72,30 +70,40 @@ export const MainPage = (): JSX.Element => {
       endDate,
     });
 
-  const isLoading =
-    isLoadingGetMe ||
-    isLoadingGetTodos ||
-    isLoadingGetReviews ||
-    isLoadingCreateTodo ||
-    isLoadingCreateReview ||
-    isLoadingUpdateTodo ||
-    isLoadingUpdateReview;
-
-  if (isLoading) {
-    return <LoadingTemplate />;
-  }
+  const isLoading = useMemo(
+    () =>
+      isLoadingGetMe ||
+      isLoadingGetTodos ||
+      isLoadingGetReviews ||
+      isLoadingCreateTodo ||
+      isLoadingCreateReview ||
+      isLoadingUpdateTodo ||
+      isLoadingUpdateReview,
+    [
+      isLoadingGetMe,
+      isLoadingGetTodos,
+      isLoadingGetReviews,
+      isLoadingCreateTodo,
+      isLoadingCreateReview,
+      isLoadingUpdateTodo,
+      isLoadingUpdateReview,
+    ],
+  );
 
   return (
-    <MainTemplate
-      dataMe={dataMe}
-      dataTodos={dataTodos}
-      dataReviews={dataReviews}
-      today={today}
-      setToday={setToday}
-      createTodo={createTodo}
-      createReview={createReview}
-      updateTodo={updateTodo}
-      updateReview={updateReview}
-    />
+    <>
+      <MainTemplate
+        dataMe={dataMe}
+        dataTodos={dataTodos}
+        dataReviews={dataReviews}
+        today={today}
+        setToday={setToday}
+        createTodo={createTodo}
+        createReview={createReview}
+        updateTodo={updateTodo}
+        updateReview={updateReview}
+      />
+      {isLoading && <LoadingTemplate />}
+    </>
   );
 };

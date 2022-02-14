@@ -46,9 +46,8 @@ export const useUpdateTodoMutation = (
     },
   );
 
-  const updateTodo = (input: UpdateTodoMutationInput) => {
-    console.log({ ...input });
-    updateTodoMutation({
+  const updateTodo = async (input: UpdateTodoMutationInput) => {
+    await updateTodoMutation({
       variables: {
         input,
       },

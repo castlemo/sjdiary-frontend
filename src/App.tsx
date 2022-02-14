@@ -25,7 +25,7 @@ const App = () => {
           <MainRouter />
         </BrowserRouter>
       </AppWrapper>
-      {REACT_APP_MODE === 'local' && <AppDebug />}
+      {/* {REACT_APP_MODE === 'local' && <AppDebug />} */}
     </>
   );
 };

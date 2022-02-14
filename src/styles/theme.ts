@@ -3,8 +3,8 @@ import { ThemeContext } from 'styled-components';
 
 export const theme = {
   colors: {
-    green1: '#58CAB5`',
-    green2: '#092E27`',
+    green1: '#58CAB5',
+    green2: '#092E27',
 
     purple1: '#9299FF',
     purple2: '#404DB7',
