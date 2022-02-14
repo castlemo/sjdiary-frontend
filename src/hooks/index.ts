@@ -1,5 +1,6 @@
 export * from './useWindowSize';
 export * from './useBrowserInfo';
+export * from './useInterval';
 
 export const useCheckAuthLocalStorage = () => {
   const LOCAL_STORAGE_KEY = 'checkAuth';
