@@ -11,7 +11,7 @@ import {
   UpdateTodoMutationInput,
 } from '../../../graphQL/types';
 import { useBrowserInfo } from '../../../hooks';
-import { ColorCheckButton } from '../../atoms';
+import { ColorCheckButton, DiaryDeleteModal } from '../../atoms';
 
 type StyleType = 'drag' | 'none' | 'timeLess';
 
@@ -99,19 +99,19 @@ export const DiaryCard: FC<PropTypes> = ({
   const { browser } = useBrowserInfo();
 
   const dragDivRef = useRef<HTMLDivElement>(null);
-  const dragInputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const [isDeletedModal, setIsDeletedModal] = useState(false);
+  const [isDeletedModalOpen, setIsDeletedModalOpen] = useState(false);
   const [content, setContent] = useState(item.content);
 
   const onEnterPress = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-    e.preventDefault();
     if (e.key === 'Enter' && 0 < content.length) {
+      e.preventDefault();
+      inputRef.current?.blur();
       updateItem({
         id: item.id,
         content,
       });
-      setContent('');
     }
   };
 
@@ -216,138 +216,150 @@ export const DiaryCard: FC<PropTypes> = ({
   }, [dragDivRef]);
 
   return (
-    <StyledDiaryCardWrapper
-      ref={diaryCardRef}
-      itemType={itemType}
-      styleType={styleType}
-      height={height}
-      top={top}
-      left={left}
-      parentWidth={parentWidth ?? 0}
-      isDragging={isDragging}
-      onDragOver={() => {
-        setIsCanDrop(false);
-      }}
-      onDragLeave={() => {
-        setIsCanDrop(true);
-      }}
-      isCompleted={isCompleted}
-      isOverTime={isOverTime}
-      onContextMenu={(e) => {
-        e.preventDefault();
-        console.log('우클!');
-      }}
-    >
-      {styleType === 'none' && (
-        <>
-          <StyledResizingDragBox
-            ref={resizeTopRef}
-            parentWidth={parentWidth}
-            style={{
-              top: 0,
-            }}
-          />
-
-          <StyledResizingDragBox
-            ref={resizeBottomRef}
-            parentWidth={parentWidth}
-            style={{
-              bottom: 0,
-            }}
-          />
-        </>
-      )}
-
-      <div
-        ref={dragDivRef}
-        style={{
-          position: 'absolute',
-          width: parentWidth * 0.9,
-          height: height > 60 ? height * 0.9 : height * 0.7,
-          display: 'flex',
-          justifySelf: 'center',
-          alignSelf: 'center',
-          cursor: 'move',
-          left: itemType === 'todo' ? 0 : undefined,
+    <>
+      <StyledDiaryCardWrapper
+        ref={diaryCardRef}
+        itemType={itemType}
+        styleType={styleType}
+        height={height}
+        top={top}
+        left={left}
+        parentWidth={parentWidth ?? 0}
+        isDragging={isDragging}
+        onDragOver={() => {
+          setIsCanDrop(false);
         }}
-      />
-
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          width: '90%',
-          justifyContent: 'center',
-          cursor: 'move',
+        onDragLeave={() => {
+          setIsCanDrop(true);
+        }}
+        isCompleted={isCompleted}
+        isOverTime={isOverTime}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          setIsDeletedModalOpen(true);
         }}
       >
-        {itemType === 'todo' ? (
-          <input
-            ref={dragInputRef}
-            style={{
-              height: 'auto',
-              fontSize: 16,
-              color: isCompleted
-                ? theme.colors.purple1
-                : isOverTime
-                ? theme.colors.green1
-                : theme.colors.purple1,
-              fontFamily: theme.fonts.spoqaHanSansNeo,
-              backgroundColor: 'transparent',
-              border: 0,
-              outline: 'none',
-              zIndex: 1,
+        {isDeletedModalOpen && (
+          <DiaryDeleteModal
+            onClick={() => {
+              setIsDeletedModalOpen(false);
             }}
-            defaultValue={content}
-            onKeyPress={onEnterPress}
-            onChange={onChangeContentInput}
-            onMouseOver={() => {
-              if (dragInputRef.current) {
-                dragRef(dragInputRef);
-              }
-            }}
-            onMouseLeave={() => {
-              if (dragDivRef.current) {
-                dragRef(dragDivRef);
-              }
+            deleteItem={() => {
+              console.log('delete');
             }}
           />
-        ) : (
-          <span
-            style={{
-              height: 'auto',
-              fontSize: 16,
-              fontFamily: theme.fonts.spoqaHanSansNeo,
-            }}
-          >
-            {content}
-          </span>
+        )}
+        {styleType === 'none' && (
+          <>
+            <StyledResizingDragBox
+              ref={resizeTopRef}
+              parentWidth={parentWidth}
+              style={{
+                top: 0,
+              }}
+            />
+
+            <StyledResizingDragBox
+              ref={resizeBottomRef}
+              parentWidth={parentWidth}
+              style={{
+                bottom: 0,
+              }}
+            />
+          </>
         )}
 
-        {height > 30 && (
-          <span
-            style={{
-              height: 'auto',
-              fontSize: 12,
-              fontFamily: theme.fonts.spoqaHanSansNeo,
-            }}
-          >
-            {startedStr} ~ {finishedStr}
-          </span>
-        )}
-      </div>
-
-      {itemType === 'todo' && item.startedAt && item.finishedAt && (
-        <ColorCheckButton
-          isChecked={isCompleted}
-          onClick={(val: boolean) => {
-            updateItem({
-              id: item.id,
-              isCompleted: val,
-            });
+        <div
+          ref={dragDivRef}
+          style={{
+            position: 'absolute',
+            width: parentWidth * 0.9,
+            height: height > 60 ? height * 0.9 : height * 0.7,
+            display: 'flex',
+            justifySelf: 'center',
+            alignSelf: 'center',
+            cursor: 'move',
+            left: itemType === 'todo' ? 0 : undefined,
           }}
         />
-      )}
-    </StyledDiaryCardWrapper>
+
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            width: '90%',
+            justifyContent: 'center',
+            cursor: 'move',
+          }}
+        >
+          {itemType === 'todo' ? (
+            <input
+              ref={inputRef}
+              style={{
+                height: 'auto',
+                fontSize: 16,
+                color: isCompleted
+                  ? theme.colors.purple1
+                  : isOverTime
+                  ? theme.colors.green1
+                  : theme.colors.purple1,
+                fontFamily: theme.fonts.spoqaHanSansNeo,
+                backgroundColor: 'transparent',
+                border: 0,
+                outline: 'none',
+                zIndex: 1,
+              }}
+              value={content}
+              onKeyPress={onEnterPress}
+              onChange={onChangeContentInput}
+              onMouseOver={() => {
+                if (inputRef.current) {
+                  dragRef(inputRef);
+                }
+              }}
+              onMouseLeave={() => {
+                if (dragDivRef.current) {
+                  dragRef(dragDivRef);
+                }
+              }}
+            />
+          ) : (
+            <span
+              style={{
+                height: 'auto',
+                fontSize: 16,
+                fontFamily: theme.fonts.spoqaHanSansNeo,
+              }}
+            >
+              {content}
+            </span>
+          )}
+
+          {height > 30 && (
+            <span
+              style={{
+                height: 'auto',
+                fontSize: 12,
+                fontFamily: theme.fonts.spoqaHanSansNeo,
+              }}
+            >
+              {startedStr} ~ {finishedStr}
+            </span>
+          )}
+        </div>
+
+        {itemType === 'todo' && item.startedAt && item.finishedAt && (
+          <ColorCheckButton
+            isChecked={isCompleted}
+            onClick={(val: boolean) => {
+              updateItem({
+                id: item.id,
+                isCompleted: val,
+              });
+            }}
+          />
+        )}
+      </StyledDiaryCardWrapper>
+    </>
   );
 };

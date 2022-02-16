@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import {
   useCreateReviewMutation,
   useCreateTodoMutation,
+  useDeleteReviewMutation,
+  useDeleteTodoMutation,
   useUpdateReviewMutation,
   useUpdateTodoMutation,
 } from '../../graphQL/mutations';
@@ -64,11 +66,15 @@ export const MainPage = (): JSX.Element => {
     startDate,
     endDate,
   });
+
   const { updateReview, loading: isLoadingUpdateReview } =
     useUpdateReviewMutation({
       startDate,
       endDate,
     });
+
+  const { deleteTodo } = useDeleteTodoMutation();
+  const { deleteReview } = useDeleteReviewMutation();
 
   const isLoading = useMemo(
     () =>

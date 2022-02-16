@@ -31,3 +31,9 @@ export type GetTodosQueryInput = {
 };
 
 export type GetReviewsQueryInput = GetTodosQueryInput;
+
+export type DeleteTodoInput = {
+  id: number;
+};
+
+export type DeleteReviewInput = DeleteTodoInput;

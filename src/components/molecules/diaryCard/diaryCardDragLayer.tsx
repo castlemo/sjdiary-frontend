@@ -29,7 +29,6 @@ const StyledDragLayer = styled.div<{ parentWidth: number; height: number }>`
 const getDragLayerStyles = (
   initialOffset: XYCoord | null,
   currentOffset: XYCoord | null,
-  x: number,
 ): CSSProperties => {
   if (!initialOffset || !currentOffset) {
     return {
@@ -37,9 +36,9 @@ const getDragLayerStyles = (
     };
   }
 
-  const { x: currentX, y } = currentOffset;
+  const { x, y } = currentOffset;
 
-  const transform = `translate(${x ? x : currentX}px, ${y}px)`;
+  const transform = `translate(${x}px, ${y}px)`;
   return {
     transform,
     WebkitTransform: transform,
@@ -84,11 +83,7 @@ export const DiaryCardDragLayer: FC<PropTypes> = ({
   return (
     <StyledDragLayer
       parentWidth={parentWidth}
-      style={getDragLayerStyles(
-        initialOffset,
-        currentOffset,
-        itemType === 'review' ? x + parentWidth : x,
-      )}
+      style={getDragLayerStyles(initialOffset, currentOffset)}
       height={height}
     >
       <DiaryCard
