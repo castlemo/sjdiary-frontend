@@ -32,8 +32,8 @@ export type GetTodosQueryInput = {
 
 export type GetReviewsQueryInput = GetTodosQueryInput;
 
-export type DeleteTodoInput = {
+export type DeleteTodoMutationInput = {
   id: number;
 };
 
-export type DeleteReviewInput = DeleteTodoInput;
+export type DeleteReviewMutationInput = DeleteTodoMutationInput;

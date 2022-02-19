@@ -13,6 +13,8 @@ import { Browser, DragItemType, THIRTY_MINUTES_TIME } from '../../../constant';
 import {
   CreateReviewMutationInput,
   CreateTodoMutationInput,
+  DeleteReviewMutationInput,
+  DeleteTodoMutationInput,
   GetMeOutput,
   GetReviewOutput,
   GetReviewsOutput,
@@ -48,10 +50,12 @@ type PropTypes = {
   dataTodos?: GetTodosOutput;
   dataReviews?: GetReviewsOutput;
   setToday: React.Dispatch<React.SetStateAction<Date>>;
-  createTodo: (input: CreateTodoMutationInput) => void;
-  createReview: (input: CreateReviewMutationInput) => void;
-  updateTodo: (input: UpdateTodoMutationInput) => void;
-  updateReview: (input: UpdateReviewMutationInput) => void;
+  createTodo: (input: CreateTodoMutationInput) => Promise<void>;
+  createReview: (input: CreateReviewMutationInput) => Promise<void>;
+  updateTodo: (input: UpdateTodoMutationInput) => Promise<void>;
+  updateReview: (input: UpdateReviewMutationInput) => Promise<void>;
+  deleteTodo: (input: DeleteTodoMutationInput) => Promise<void>;
+  deleteReview: (input: DeleteReviewMutationInput) => Promise<void>;
 };
 
 export const MainTemplate: FC<PropTypes> = ({
@@ -64,6 +68,8 @@ export const MainTemplate: FC<PropTypes> = ({
   createReview,
   updateTodo,
   updateReview,
+  deleteTodo,
+  deleteReview,
 }): JSX.Element => {
   const theme = useTheme();
   const windowSize = useWindowSize();
@@ -550,6 +556,7 @@ export const MainTemplate: FC<PropTypes> = ({
                       }
                     }}
                     updateItem={updateTodo}
+                    deleteItem={deleteTodo}
                   />
                 );
               })}
@@ -588,6 +595,7 @@ export const MainTemplate: FC<PropTypes> = ({
                       }
                     }}
                     updateItem={updateReview}
+                    deleteItem={deleteReview}
                   />
                 );
               })}
@@ -654,6 +662,7 @@ export const MainTemplate: FC<PropTypes> = ({
                 }}
                 isCompleted={!!completedAt}
                 updateItem={updateTodo}
+                deleteItem={deleteTodo}
               />
             );
           })}
@@ -687,6 +696,7 @@ export const MainTemplate: FC<PropTypes> = ({
                   }
                 }}
                 updateItem={updateReview}
+                deleteItem={deleteReview}
               />
             );
           })}

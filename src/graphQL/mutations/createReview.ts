@@ -15,7 +15,7 @@ export const CREATE_REVIEW = gql`
 `;
 
 type UseCreateReviewMutation = {
-  createReview: (input: CreateReviewMutationInput) => void;
+  createReview: (input: CreateReviewMutationInput) => Promise<void>;
   loading: boolean;
   error?: ApolloError;
 };

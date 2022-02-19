@@ -19,7 +19,7 @@ export const UPDATE_REVIEW = gql`
 `;
 
 type UseUpdateReviewMutation = {
-  updateReview: (input: UpdateReviewMutationInput) => void;
+  updateReview: (input: UpdateReviewMutationInput) => Promise<void>;
   loading: boolean;
   error?: ApolloError;
 };
@@ -49,8 +49,8 @@ export const useUpdateReviewMutation = (
     },
   });
 
-  const updateReview = (input: UpdateReviewMutationInput) => {
-    updateReviewMutation({
+  const updateReview = async (input: UpdateReviewMutationInput) => {
+    await updateReviewMutation({
       variables: {
         input,
       },

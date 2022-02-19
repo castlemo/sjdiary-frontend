@@ -17,7 +17,7 @@ export const CREATE_TODO = gql`
 `;
 
 type UseCreateTodoMutation = {
-  createTodo: (input: CreateTodoMutationInput) => void;
+  createTodo: (input: CreateTodoMutationInput) => Promise<void>;
   loading: boolean;
   error?: ApolloError;
 };
@@ -47,8 +47,8 @@ export const useCreateTodoMutation = (
     },
   );
 
-  const createTodo = (input: CreateTodoMutationInput) => {
-    createTodoMutation({
+  const createTodo = async (input: CreateTodoMutationInput) => {
+    await createTodoMutation({
       variables: {
         input,
       },

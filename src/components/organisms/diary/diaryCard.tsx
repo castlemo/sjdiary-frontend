@@ -3,8 +3,15 @@ import { DragSourceMonitor, useDrag } from 'react-dnd';
 import { getEmptyImage } from 'react-dnd-html5-backend';
 import styled, { useTheme } from 'styled-components';
 
-import { Browser, DragItemType, THIRTY_MINUTES_TIME } from '../../../constant';
 import {
+  Browser,
+  DragItemType,
+  THIRTY_MINUTES_TIME,
+  TOOLTIP_TIME,
+} from '../../../constant';
+import {
+  DeleteReviewMutationInput,
+  DeleteTodoMutationInput,
   GetReviewOutput,
   GetTodoOutput,
   UpdateReviewMutationInput,
@@ -12,6 +19,7 @@ import {
 } from '../../../graphQL/types';
 import { useBrowserInfo } from '../../../hooks';
 import { ColorCheckButton, DiaryDeleteModal } from '../../atoms';
+import { Tooltip } from '../../atoms/tooltips';
 
 type StyleType = 'drag' | 'none' | 'timeLess';
 
@@ -80,6 +88,9 @@ type PropTypes = {
   updateItem: (
     input: UpdateTodoMutationInput | UpdateReviewMutationInput,
   ) => void;
+  deleteItem: (
+    input: DeleteTodoMutationInput | DeleteReviewMutationInput,
+  ) => void;
 };
 
 export const DiaryCard: FC<PropTypes> = ({
@@ -94,30 +105,65 @@ export const DiaryCard: FC<PropTypes> = ({
   setIsCanDrop,
   isCompleted = false,
   updateItem,
+  deleteItem,
 }): JSX.Element => {
   const theme = useTheme();
   const { browser } = useBrowserInfo();
 
   const dragDivRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const [isDeletedModalOpen, setIsDeletedModalOpen] = useState(false);
+  const [isTooltipOpen, setIsTooltipOpen] = useState(false);
   const [content, setContent] = useState(item.content);
 
+  const isUpdatable = useMemo(() => {
+    if (item.finishedAt) {
+      return today.getTime() < item.finishedAt;
+    }
+
+    return true;
+  }, [today, item]);
+  // const isUpdatable = true;
+
+  const showTooltip = () => {
+    setIsTooltipOpen(true);
+    setTimeout(() => {
+      setIsTooltipOpen(false);
+    }, TOOLTIP_TIME);
+  };
+
   const onEnterPress = async (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && 0 < content.length) {
-      e.preventDefault();
-      inputRef.current?.blur();
-      updateItem({
-        id: item.id,
-        content,
-      });
+    if (isUpdatable) {
+      if (e.key === 'Enter' && 0 < content.length) {
+        e.preventDefault();
+        inputRef.current?.blur();
+        updateItem({
+          id: item.id,
+          content,
+        });
+      }
+    } else {
+      showTooltip();
     }
   };
 
   const onChangeContentInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = e.target;
-    setContent(value);
+    if (isUpdatable) {
+      const { value } = e.target;
+      setContent(value);
+    } else {
+      showTooltip();
+    }
+  };
+
+  const onDeleteItem = () => {
+    if (isUpdatable) {
+      deleteItem({ id: item.id });
+    } else {
+      showTooltip();
+    }
   };
 
   const isOverTime = useMemo(() => {
@@ -169,13 +215,14 @@ export const DiaryCard: FC<PropTypes> = ({
   );
 
   const { startedAt, finishedAt } = item;
-  const startedStr = timeToString(startedAt);
-  const finishedStr = timeToString(finishedAt);
+  const startedStr = useMemo(() => timeToString(startedAt), [startedAt]);
+  const finishedStr = useMemo(() => timeToString(finishedAt), [finishedAt]);
 
   const top = getTop(startedAt, finishedAt);
 
   const [{ isDragging }, dragRef, dragPreview] = useDrag({
     type: itemType,
+    canDrag: isUpdatable,
     item: item,
     collect: (monitor: DragSourceMonitor) => ({
       isDragging: monitor.isDragging(),
@@ -184,6 +231,7 @@ export const DiaryCard: FC<PropTypes> = ({
 
   const [, resizeTopRef, resizeTopPreview] = useDrag({
     type: 'resize-top',
+    canDrag: isUpdatable,
     item: {
       ...item,
       type: itemType,
@@ -192,6 +240,7 @@ export const DiaryCard: FC<PropTypes> = ({
 
   const [, resizeBottomRef, resizeBottomPreview] = useDrag({
     type: 'resize-bottom',
+    canDrag: isUpdatable,
     item: {
       ...item,
       type: itemType,
@@ -226,6 +275,11 @@ export const DiaryCard: FC<PropTypes> = ({
         left={left}
         parentWidth={parentWidth ?? 0}
         isDragging={isDragging}
+        onDragStart={() => {
+          if (!isUpdatable) {
+            showTooltip();
+          }
+        }}
         onDragOver={() => {
           setIsCanDrop(false);
         }}
@@ -239,14 +293,18 @@ export const DiaryCard: FC<PropTypes> = ({
           setIsDeletedModalOpen(true);
         }}
       >
+        {isTooltipOpen && (
+          <Tooltip
+            content="시간이 지나 할일 수정이 불가합니다 : ("
+            bottom={height < 31 ? -30 : Math.floor(height / 2) - 60}
+          />
+        )}
         {isDeletedModalOpen && (
           <DiaryDeleteModal
             onClick={() => {
               setIsDeletedModalOpen(false);
             }}
-            deleteItem={() => {
-              console.log('delete');
-            }}
+            deleteItem={onDeleteItem}
           />
         )}
         {styleType === 'none' && (
@@ -284,6 +342,7 @@ export const DiaryCard: FC<PropTypes> = ({
         />
 
         <div
+          ref={contentRef}
           style={{
             display: 'flex',
             flexDirection: 'column',

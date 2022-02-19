@@ -1,7 +1,7 @@
 import { ApolloError, gql, useMutation } from '@apollo/client';
 
 import { GET_TODOS } from '../queries';
-import { DeleteTodoInput } from '../types';
+import { DeleteTodoMutationInput } from '../types';
 
 export const DELETE_TODO = gql`
   mutation DeleteTodo($input: DeleteTodoInput!) {
@@ -10,13 +10,13 @@ export const DELETE_TODO = gql`
 `;
 
 type UseDeleteTodoMutation = {
-  deleteTodo: (input: DeleteTodoInput) => void;
+  deleteTodo: (input: DeleteTodoMutationInput) => Promise<void>;
   loading: boolean;
   error?: ApolloError;
 };
 
 type Variables = {
-  input: DeleteTodoInput;
+  input: DeleteTodoMutationInput;
 };
 
 export const useDeleteTodoMutation = (): UseDeleteTodoMutation => {
@@ -27,7 +27,7 @@ export const useDeleteTodoMutation = (): UseDeleteTodoMutation => {
     refetchQueries: [GET_TODOS],
   });
 
-  const deleteTodo = async (input: DeleteTodoInput) => {
+  const deleteTodo = async (input: DeleteTodoMutationInput) => {
     await deleteTodoMutation({
       variables: {
         input,

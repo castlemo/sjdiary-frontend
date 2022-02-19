@@ -96,6 +96,7 @@ export const DiaryCardDragLayer: FC<PropTypes> = ({
         item={item}
         today={today}
         updateItem={() => {}}
+        deleteItem={() => {}}
         isCompleted={isCompleted}
       />
     </StyledDragLayer>

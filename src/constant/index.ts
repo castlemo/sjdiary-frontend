@@ -18,3 +18,5 @@ export enum Browser {
   Chrome = 'Chrome',
   Safari = 'Safari',
 }
+
+export const TOOLTIP_TIME = 5000;

@@ -16,7 +16,7 @@ export const UPDATE_TODO = gql`
 `;
 
 type UseUpdateTodoMutation = {
-  updateTodo: (input: UpdateTodoMutationInput) => void;
+  updateTodo: (input: UpdateTodoMutationInput) => Promise<void>;
   loading: boolean;
   error?: ApolloError;
 };

@@ -1,7 +1,7 @@
 import { ApolloError, gql, useMutation } from '@apollo/client';
 
 import { GET_REVIEWS } from '../queries';
-import { DeleteReviewInput } from '../types';
+import { DeleteReviewMutationInput } from '../types';
 
 export const DELETE_REVIEW = gql`
   mutation DeleteReview($input: DeleteReviewInput!) {
@@ -10,13 +10,13 @@ export const DELETE_REVIEW = gql`
 `;
 
 type UseDeleteReviewMutation = {
-  deleteReview: (input: DeleteReviewInput) => void;
+  deleteReview: (input: DeleteReviewMutationInput) => Promise<void>;
   loading: boolean;
   error?: ApolloError;
 };
 
 type Variables = {
-  input: DeleteReviewInput;
+  input: DeleteReviewMutationInput;
 };
 
 export const useDeleteReviewMutation = (): UseDeleteReviewMutation => {
@@ -27,7 +27,7 @@ export const useDeleteReviewMutation = (): UseDeleteReviewMutation => {
     refetchQueries: [GET_REVIEWS],
   });
 
-  const deleteReview = async (input: DeleteReviewInput) => {
+  const deleteReview = async (input: DeleteReviewMutationInput) => {
     await deleteReviewMutation({
       variables: {
         input,

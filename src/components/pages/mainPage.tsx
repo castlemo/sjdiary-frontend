@@ -108,6 +108,8 @@ export const MainPage = (): JSX.Element => {
         createReview={createReview}
         updateTodo={updateTodo}
         updateReview={updateReview}
+        deleteTodo={deleteTodo}
+        deleteReview={deleteReview}
       />
       {isLoading && <LoadingTemplate />}
     </>
