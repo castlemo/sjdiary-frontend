@@ -119,8 +119,10 @@ export const DiaryCard: FC<PropTypes> = ({
   const [content, setContent] = useState(item.content);
 
   const isUpdatable = useMemo(() => {
-    if (item.finishedAt) {
-      return today.getTime() < item.finishedAt;
+    if (itemType === 'todo') {
+      if (item.finishedAt) {
+        return today.getTime() < item.finishedAt;
+      }
     }
 
     return true;
