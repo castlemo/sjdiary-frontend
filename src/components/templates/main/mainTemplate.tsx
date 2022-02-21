@@ -237,10 +237,6 @@ export const MainTemplate: FC<PropTypes> = ({
     },
   });
 
-  useEffect(() => {
-    console.log({ isCanDrop });
-  }, [isCanDrop]);
-
   const getIsCanResize = useCallback(
     ({
       id,

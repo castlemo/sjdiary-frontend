@@ -66,7 +66,9 @@ export const MainRouter = (): JSX.Element => {
 
   if (errorVerifyUser || errorCreateUser) {
     // TODO Error Page 작업
-    console.log({ errorVerifyUser });
+    if (process.env.REACT_APP_MODE === 'local') {
+      console.log({ errorVerifyUser });
+    }
   }
 
   return (

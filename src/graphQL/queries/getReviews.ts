@@ -1,4 +1,5 @@
 import { ApolloError, gql, QueryHookOptions, useQuery } from '@apollo/client';
+import { useMemo } from 'react';
 
 import {
   GetReviewOutput,
@@ -54,26 +55,21 @@ export const useGetReviewsQuery = (
   const nowMonth = today.getMonth();
   const nowDate = today.getDate();
 
+  const todayStartTimestamp = useMemo(
+    () => new Date(nowYear, nowMonth, nowDate).getTime(),
+    [nowYear, nowMonth, nowDate],
+  );
+  const nextStartTimestamp = useMemo(
+    () => new Date(nowYear, nowMonth, nowDate + 1).getTime(),
+    [nowYear, nowMonth, nowDate],
+  );
+
   const data = response?.reviews.reduce(
     (obj: GetReviewsOutput, cur: GetReviewOutput) => {
       if (cur.startedAt && cur.finishedAt) {
-        const todoStartDate = new Date(cur.startedAt);
-        const startYear = todoStartDate.getFullYear();
-        const startMonth = todoStartDate.getMonth();
-        const startDate = todoStartDate.getDate();
-
-        const todoFinishDate = new Date(cur.finishedAt);
-        const finishYear = todoFinishDate.getFullYear();
-        const finishMonth = todoFinishDate.getMonth();
-        const finishDate = todoFinishDate.getDate();
-
         if (
-          nowYear === startYear &&
-          nowYear === finishYear &&
-          nowMonth === startMonth &&
-          nowMonth === finishMonth &&
-          nowDate === startDate &&
-          nowDate === finishDate
+          todayStartTimestamp <= cur.startedAt &&
+          cur.finishedAt <= nextStartTimestamp
         ) {
           obj.reviews.push(cur);
         }

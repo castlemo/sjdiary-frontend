@@ -53,7 +53,7 @@ export const useGetTodosQuery = (
     () => new Date(nowYear, nowMonth, nowDate).getTime(),
     [nowYear, nowMonth, nowDate],
   );
-  const todayEndTimestamp = useMemo(
+  const nextStartTimestamp = useMemo(
     () => new Date(nowYear, nowMonth, nowDate + 1).getTime(),
     [nowYear, nowMonth, nowDate],
   );
@@ -63,7 +63,7 @@ export const useGetTodosQuery = (
       if (cur.startedAt && cur.finishedAt) {
         if (
           todayStartTimestamp <= cur.startedAt &&
-          cur.finishedAt <= todayEndTimestamp
+          cur.finishedAt <= nextStartTimestamp
         ) {
           obj.todos.push(cur);
         }
