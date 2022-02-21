@@ -33,7 +33,7 @@ export const MainPage = (): JSX.Element => {
 
     return {
       startDate: new Date(year, month, date).getTime(),
-      endDate: new Date(year, month, date, 23, 59, 59, 999).getTime(),
+      endDate: new Date(year, month, date + 1).getTime(),
     };
   }, [dateObj, today]);
 

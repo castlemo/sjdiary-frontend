@@ -31,7 +31,7 @@ type StyledDiaryCardWrapperPropTypes = {
   parentWidth: number;
   isDragging: boolean;
   isCompleted: boolean;
-  isOverTime: boolean;
+  isUpdatable: boolean;
   itemType: DragItemType;
 };
 
@@ -49,16 +49,16 @@ const StyledDiaryCardWrapper = styled.div<StyledDiaryCardWrapperPropTypes>`
   align-items: center;
 
   color: ${({ theme }) => theme.colors.purple1};
-  background-color: ${({ theme, isCompleted, isOverTime, itemType }) => {
+  background-color: ${({ theme, isCompleted, isUpdatable, itemType }) => {
     if (itemType === 'review') {
       return theme.colors.black2;
     }
 
     return isCompleted
       ? theme.colors.purple3
-      : isOverTime
-      ? theme.colors.green2
-      : theme.colors.black2;
+      : isUpdatable
+      ? theme.colors.black2
+      : theme.colors.green2;
   }};
 
   border: 0.5px solid ${({ theme }) => theme.colors.grey3};
@@ -121,13 +121,12 @@ export const DiaryCard: FC<PropTypes> = ({
   const isUpdatable = useMemo(() => {
     if (itemType === 'todo') {
       if (item.finishedAt) {
-        return today.getTime() < item.finishedAt;
+        return Date.now() < item.finishedAt;
       }
     }
 
     return true;
-  }, [today, item]);
-  // const isUpdatable = true;
+  }, [item]);
 
   const showTooltip = () => {
     setIsTooltipOpen(true);
@@ -167,14 +166,6 @@ export const DiaryCard: FC<PropTypes> = ({
       showTooltip();
     }
   };
-
-  const isOverTime = useMemo(() => {
-    if (item.finishedAt) {
-      return item.finishedAt < today.getTime();
-    }
-
-    return false;
-  }, [today, item]);
 
   const diaryCardRef = useRef<HTMLDivElement>(null);
 
@@ -289,7 +280,7 @@ export const DiaryCard: FC<PropTypes> = ({
           setIsCanDrop(true);
         }}
         isCompleted={isCompleted}
-        isOverTime={isOverTime}
+        isUpdatable={isUpdatable}
         onContextMenu={(e) => {
           e.preventDefault();
           setIsDeletedModalOpen(true);
@@ -361,9 +352,9 @@ export const DiaryCard: FC<PropTypes> = ({
                 fontSize: 16,
                 color: isCompleted
                   ? theme.colors.purple1
-                  : isOverTime
-                  ? theme.colors.green1
-                  : theme.colors.purple1,
+                  : isUpdatable
+                  ? theme.colors.purple1
+                  : theme.colors.green1,
                 fontFamily: theme.fonts.spoqaHanSansNeo,
                 backgroundColor: 'transparent',
                 border: 0,

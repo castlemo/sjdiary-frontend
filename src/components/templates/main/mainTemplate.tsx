@@ -157,6 +157,20 @@ export const MainTemplate: FC<PropTypes> = ({
         } else {
           finishedAt += THIRTY_MINUTES_TIME * 2;
         }
+
+        const year = today.getFullYear();
+        const month = today.getMonth();
+        const date = today.getDate();
+        const nextDayZeroHourTimestamp = new Date(
+          year,
+          month,
+          date + 1,
+        ).getTime();
+
+        if (nextDayZeroHourTimestamp < finishedAt) {
+          finishedAt = nextDayZeroHourTimestamp;
+        }
+
         updateTodo({
           id: item.id,
           startedAt,
@@ -193,6 +207,20 @@ export const MainTemplate: FC<PropTypes> = ({
         } else {
           finishedAt += THIRTY_MINUTES_TIME * 2;
         }
+
+        const year = today.getFullYear();
+        const month = today.getMonth();
+        const date = today.getDate();
+        const nextDayZeroHourTimestamp = new Date(
+          year,
+          month,
+          date + 1,
+        ).getTime();
+
+        if (nextDayZeroHourTimestamp < finishedAt) {
+          finishedAt = nextDayZeroHourTimestamp;
+        }
+
         updateReview({
           id: Number(item.id),
           startedAt,
@@ -208,6 +236,10 @@ export const MainTemplate: FC<PropTypes> = ({
       }
     },
   });
+
+  useEffect(() => {
+    console.log({ isCanDrop });
+  }, [isCanDrop]);
 
   const getIsCanResize = useCallback(
     ({
@@ -368,6 +400,8 @@ export const MainTemplate: FC<PropTypes> = ({
 
     const newTime = getNewTime(y);
 
+    setIsCanDrop(true);
+
     const { isCanResize, prevItem, nextItem } = getIsCanResize({
       id: item.id,
       itemType: item.type,
@@ -495,6 +529,14 @@ export const MainTemplate: FC<PropTypes> = ({
       setScrollSave(true);
     }
   }, [diaryContainerRef, windowSize]);
+
+  useEffect(() => {
+    if (diaryContainerRef.current) {
+      const diaryContainerRect =
+        diaryContainerRef.current.getBoundingClientRect();
+      setDiaryContainerStartedY(diaryContainerRect.top);
+    }
+  }, [isTimeUndecidedDiary]);
 
   useEffect(() => {
     if (isScrollSave) {
