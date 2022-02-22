@@ -77,6 +77,7 @@ export const WeekCalendar = ({ today, setToday }: PropTypes) => {
           key={date.getTime()}
           onClick={() => {
             setToday(date);
+            localStorage.setItem('today', date.toISOString());
           }}
         >
           <span>{DAYS[date.getDay()]}</span>

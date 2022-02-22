@@ -74,6 +74,7 @@ export const MainHeader = ({
     }
 
     setToday(newDate);
+    localStorage.setItem('today', newDate.toISOString());
   };
 
   return (
@@ -109,6 +110,7 @@ export const MainHeader = ({
         <StyledTodayButton
           onClick={() => {
             setToday(new Date());
+            localStorage.setItem('today', new Date().toISOString());
           }}
         >
           오늘

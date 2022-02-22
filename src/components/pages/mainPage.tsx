@@ -17,7 +17,10 @@ import { useInterval } from '../../hooks';
 import { LoadingTemplate, MainTemplate } from '../templates';
 
 export const MainPage = (): JSX.Element => {
-  const [today, setToday] = useState(new Date());
+  const localStorageToday = localStorage.getItem('today');
+  const [today, setToday] = useState<Date>(
+    localStorageToday ? new Date(localStorageToday) : new Date(),
+  );
 
   const dateObj = useMemo(() => {
     return {
