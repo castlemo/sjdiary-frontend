@@ -78,6 +78,9 @@ export const DiaryCreateCard = ({
       content,
     }),
     canDrag: canDarg,
+    end: () => {
+      setContent('');
+    },
   });
 
   useEffect(() => {

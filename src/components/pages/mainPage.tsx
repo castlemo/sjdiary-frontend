@@ -18,9 +18,20 @@ import { LoadingTemplate, MainTemplate } from '../templates';
 
 export const MainPage = (): JSX.Element => {
   const localStorageToday = localStorage.getItem('today');
-  const [today, setToday] = useState<Date>(
-    localStorageToday ? new Date(localStorageToday) : new Date(),
-  );
+
+  let now: Date = new Date();
+  if (localStorageToday) {
+    const savingToday = new Date(localStorageToday);
+    const year = savingToday.getFullYear();
+    const month = savingToday.getMonth();
+    const date = savingToday.getDate();
+    const hour = now.getHours();
+    const minutes = now.getMinutes();
+    const seconds = now.getSeconds();
+    now = new Date(year, month, date, hour, minutes, seconds);
+  }
+
+  const [today, setToday] = useState<Date>(now);
 
   const dateObj = useMemo(() => {
     return {

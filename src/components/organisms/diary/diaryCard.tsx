@@ -36,9 +36,18 @@ type StyledDiaryCardWrapperPropTypes = {
 };
 
 const StyledDiaryCardWrapper = styled.div<StyledDiaryCardWrapperPropTypes>`
-  position: ${({ styleType }) => (styleType === 'none' ? 'absolute' : null)};
-  top: ${({ top }) => top}px;
-  left: ${({ left }) => left}px;
+  position: ${({ styleType }) => {
+    switch (styleType) {
+      case 'timeLess':
+        return 'relative';
+      case 'drag':
+        return null;
+      default:
+        return 'absolute';
+    }
+  }};
+  top: ${({ top, styleType }) => (styleType === 'timeLess' ? 0 : top)}px;
+  left: ${({ left, styleType }) => (styleType === 'timeLess' ? 0 : left)}px;
 
   width: ${({ parentWidth }) => parentWidth}px;
   height: ${({ height }) => height}px;
@@ -298,6 +307,7 @@ export const DiaryCard: FC<PropTypes> = ({
               setIsDeletedModalOpen(false);
             }}
             deleteItem={onDeleteItem}
+            parentHeight={height}
           />
         )}
         {styleType === 'none' && (

@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
 import styled from 'styled-components';
 
-const StyledDiaryDeleteModal = styled.div`
+const StyledDiaryDeleteModal = styled.div<{ parentHeight: number }>`
   position: absolute;
 
   width: 30%;
-  height: 100%;
+  height: ${({ parentHeight }) => parentHeight}px;
   right: 0px;
 
   display: flex;
@@ -27,9 +27,14 @@ const StyledSpan = styled.span`
 type PropTypes = {
   onClick: () => void;
   deleteItem: () => void;
+  parentHeight: number;
 };
 
-export const DiaryDeleteModal = ({ onClick, deleteItem }: PropTypes) => {
+export const DiaryDeleteModal = ({
+  onClick,
+  deleteItem,
+  parentHeight,
+}: PropTypes) => {
   const ref = useRef<HTMLDivElement>(null);
 
   const handleClickOutside = (e: MouseEvent) => {
@@ -48,7 +53,11 @@ export const DiaryDeleteModal = ({ onClick, deleteItem }: PropTypes) => {
   }, []);
 
   return (
-    <StyledDiaryDeleteModal onClick={() => deleteItem()} ref={ref}>
+    <StyledDiaryDeleteModal
+      onClick={() => deleteItem()}
+      ref={ref}
+      parentHeight={parentHeight}
+    >
       <StyledSpan>삭제하기</StyledSpan>
     </StyledDiaryDeleteModal>
   );
