@@ -9,6 +9,8 @@ const StyledTooltip = styled.div<{ bottom?: number }>`
 
   left: 10px;
   bottom: ${({ bottom }) => (bottom !== undefined ? `${bottom}px` : undefined)};
+
+  z-index: 1;
 `;
 
 const Triangle = styled.div`

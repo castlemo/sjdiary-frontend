@@ -72,8 +72,6 @@ const StyledDiaryCardWrapper = styled.div<StyledDiaryCardWrapperPropTypes>`
 
   border: 0.5px solid ${({ theme }) => theme.colors.grey3};
   box-sizing: border-box;
-
-  z-index: 1;
 `;
 
 const StyledResizingDragBox = styled.div<{ parentWidth: number }>`
@@ -251,9 +249,10 @@ export const DiaryCard: FC<PropTypes> = ({
 
   useEffect(() => {
     if (diaryCardRef.current) {
-      dragPreview(diaryCardRef);
       if (browser.name === Browser.Firefox) {
         dragPreview(getEmptyImage(), { captureDraggingState: true });
+      } else {
+        dragPreview(diaryCardRef);
       }
       resizeTopPreview(getEmptyImage());
       resizeBottomPreview(getEmptyImage());
