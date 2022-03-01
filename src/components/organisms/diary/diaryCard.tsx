@@ -404,7 +404,9 @@ export const DiaryCard: FC<PropTypes> = ({
                 fontFamily: theme.fonts.spoqaHanSansNeo,
               }}
             >
-              {startedStr} ~ {finishedStr}
+              {styleType === 'drag'
+                ? '시간 수정 중'
+                : `${startedStr} ~ ${finishedStr}`}
             </span>
           )}
         </div>

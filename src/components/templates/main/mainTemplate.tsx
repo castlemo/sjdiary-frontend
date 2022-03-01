@@ -140,7 +140,10 @@ export const MainTemplate: FC<PropTypes> = ({
   const [, todoDrop] = useDrop({
     accept: 'todo',
     canDrop: () => isCanDrop,
-    drop(item: GetTodoOutput & { id?: number }, monitor: DropTargetMonitor) {
+    drop(
+      item: GetTodoOutput & { id?: number; setContent: (v: string) => void },
+      monitor: DropTargetMonitor,
+    ) {
       const currentOffset = monitor.getSourceClientOffset() as {
         x: number;
         y: number;
@@ -155,7 +158,7 @@ export const MainTemplate: FC<PropTypes> = ({
         if (item.startedAt && item.finishedAt) {
           finishedAt += item.finishedAt - item.startedAt;
         } else {
-          finishedAt += THIRTY_MINUTES_TIME * 2;
+          finishedAt += THIRTY_MINUTES_TIME;
         }
 
         const year = today.getFullYear();
@@ -171,18 +174,37 @@ export const MainTemplate: FC<PropTypes> = ({
           finishedAt = nextDayZeroHourTimestamp;
         }
 
+        const duplicateTodo = dataTodos?.todos.find((todo) => {
+          if (todo.startedAt && todo.finishedAt && todo.id !== item.id) {
+            if (
+              (todo.startedAt < startedAt && todo.finishedAt > startedAt) ||
+              (todo.startedAt < finishedAt && todo.finishedAt > finishedAt)
+            ) {
+              return true;
+            }
+          }
+
+          return false;
+        });
+
+        if (duplicateTodo) {
+          return;
+        }
+
         updateTodo({
           id: item.id,
           startedAt,
           finishedAt,
         });
       } else {
-        const finishedAt = startedAt + THIRTY_MINUTES_TIME * 2;
+        const finishedAt = startedAt + THIRTY_MINUTES_TIME;
+
         createTodo({
           content: item.content,
           startedAt,
           finishedAt,
         });
+        item.setContent('');
       }
     },
   });

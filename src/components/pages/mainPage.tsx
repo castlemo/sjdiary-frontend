@@ -52,6 +52,11 @@ export const MainPage = (): JSX.Element => {
   }, [dateObj, today]);
 
   useInterval(() => {
+    console.log(
+      today.toISOString().split('T')[0],
+      today.toISOString().split('T')[1].split(':')[0],
+      today.toISOString().split('T')[1].split(':')[1],
+    );
     setToday(new Date(today.getTime() + 1000));
   }, 1000);
 

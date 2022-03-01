@@ -30,6 +30,7 @@ type PropTypes = {
   dragItemType: DragItemType;
   createDiary: (
     input: CreateTodoMutationInput | CreateReviewMutationInput,
+    options?: { setContent: () => void },
   ) => void;
 };
 
@@ -44,12 +45,18 @@ export const DiaryCreateCard = ({
 
   const wrapperRef = useRef<HTMLDivElement>(null);
 
-  const onEnterPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const onEnterPress = async (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && 0 < content.length) {
-      createDiary({
-        content,
-      });
-      setContent('');
+      await createDiary(
+        {
+          content,
+        },
+        {
+          setContent: () => {
+            setContent('');
+          },
+        },
+      );
     }
   };
 
@@ -58,7 +65,7 @@ export const DiaryCreateCard = ({
     setContent(value);
   };
 
-  const canDarg = useCallback(() => {
+  const customCanDarg = useCallback(() => {
     const isCanDarg = content.length > 0;
 
     if (!isCanDarg) {
@@ -76,11 +83,9 @@ export const DiaryCreateCard = ({
     type: dragItemType,
     item: () => ({
       content,
+      setContent,
     }),
-    canDrag: canDarg,
-    end: () => {
-      setContent('');
-    },
+    canDrag: customCanDarg,
   });
 
   useEffect(() => {

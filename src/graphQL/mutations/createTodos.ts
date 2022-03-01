@@ -29,30 +29,37 @@ type Variables = {
 export const useCreateTodoMutation = (
   getTodosQueryInput: GetTodosQueryInput,
 ): UseCreateTodoMutation => {
-  const [createTodoMutation, { loading, error }] = useMutation<void, Variables>(
-    CREATE_TODO,
-    {
-      refetchQueries: [
-        {
-          query: GET_TODOS,
-          variables: {
-            input: getTodosQueryInput,
-          },
+  const [createTodoMutation, { loading, error }] = useMutation<
+    { createTodo: any },
+    Variables
+  >(CREATE_TODO, {
+    refetchQueries: [
+      {
+        query: GET_TODOS,
+        variables: {
+          input: getTodosQueryInput,
         },
-      ],
-      onError: (err) => {
-        console.log('createTodoMutation');
-        console.log(err.message);
       },
+    ],
+    onError: (err) => {
+      console.log('createTodoMutation');
+      console.log(err.message);
     },
-  );
+  });
 
-  const createTodo = async (input: CreateTodoMutationInput) => {
-    await createTodoMutation({
+  const createTodo = async (
+    input: CreateTodoMutationInput,
+    options?: { setContent: () => void },
+  ) => {
+    const { data } = await createTodoMutation({
       variables: {
         input,
       },
     });
+
+    if (data && data.createTodo && options) {
+      options.setContent();
+    }
   };
 
   return { createTodo, loading, error };
